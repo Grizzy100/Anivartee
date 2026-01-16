@@ -1,0 +1,19 @@
+//server\user-service\src\config\constants.ts
+export const CONSTANTS = {
+  PASSWORD_MIN_LENGTH: 8,
+  USERNAME_MIN_LENGTH: 3,
+  USERNAME_MAX_LENGTH: 32,
+  DISPLAY_NAME_MAX_LENGTH: 80,
+  BIO_MAX_LENGTH: 280,
+  
+  RESET_TOKEN_EXPIRY_HOURS: 1,
+  SESSION_EXPIRY_DAYS: 7,
+  
+  BCRYPT_ROUNDS: 12,
+  
+  RATE_LIMIT_WINDOW_MS: 15 * 60 * 1000, // 15 minutes
+  RATE_LIMIT_MAX_REQUESTS: 100,
+  
+  CLOUDINARY_FOLDER: 'user-avatars',
+  MAX_AVATAR_SIZE_MB: 5
+} as const;

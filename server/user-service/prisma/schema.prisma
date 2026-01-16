@@ -1,0 +1,140 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  schemas  = ["identity"]
+}
+
+enum UserRole {
+  USER
+  FACT_CHECKER
+  ADMIN
+  
+  @@schema("identity")
+}
+
+enum AccountStatus {
+  ACTIVE
+  DISABLED
+  
+  @@schema("identity")
+}
+
+model User {
+  id String @id @default(uuid()) @db.Uuid
+
+  email        String @unique @db.VarChar(255)
+  username     String @unique @db.VarChar(32)
+  passwordHash String @db.Text
+  
+  role   UserRole      @default(USER)
+  status AccountStatus @default(ACTIVE)
+
+  displayName    String? @db.VarChar(80)
+  avatarUrl      String? @db.Text
+  avatarPublicId String? @db.VarChar(255)
+  bio            String? @db.VarChar(280)
+
+  emailVerified   Boolean   @default(false)
+  emailVerifiedAt DateTime?
+  lastLoginAt     DateTime?
+
+  userProfile        UserProfile?
+  factCheckerProfile FactCheckerProfile?
+  adminProfile       AdminProfile?
+
+  sessions            Session[]
+  passwordResetTokens PasswordResetToken[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([role])
+  @@index([status])
+  @@index([email])
+  @@index([username])
+  @@schema("identity")
+}
+
+model Session {
+  id String @id @default(uuid()) @db.Uuid
+
+  userId String @db.Uuid
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  refreshTokenHash String @db.Text
+
+  expiresAt DateTime
+  revokedAt DateTime?
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@index([expiresAt])
+  @@index([refreshTokenHash])
+  @@schema("identity")
+}
+
+model UserProfile {
+  id     String @id @default(uuid()) @db.Uuid
+  userId String @unique @db.Uuid
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  firstName String? @db.VarChar(60)
+  lastName  String? @db.VarChar(60)
+  state     String? @db.VarChar(80)
+  country   String? @db.VarChar(60)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  @@schema("identity")
+}
+
+model FactCheckerProfile {
+  id     String @id @default(uuid()) @db.Uuid
+  userId String @unique @db.Uuid
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  firstName    String? @db.VarChar(60)
+  lastName     String? @db.VarChar(60)
+  organization String? @db.VarChar(120)
+  verifiedAt   DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  @@schema("identity")
+}
+
+model AdminProfile {
+  id     String @id @default(uuid()) @db.Uuid
+  userId String @unique @db.Uuid
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  notes String? @db.Text
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  @@schema("identity")
+}
+
+model PasswordResetToken {
+  id String @id @default(uuid()) @db.Uuid
+  
+  userId String @db.Uuid
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  tokenHash String @unique @db.Text
+  usedAt    DateTime?
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@index([expiresAt])
+  @@index([tokenHash])
+  @@schema("identity")
+}

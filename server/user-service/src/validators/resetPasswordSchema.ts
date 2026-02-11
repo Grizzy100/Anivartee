@@ -1,3 +1,4 @@
+//server\user-service\src\validators\resetPasswordSchema.ts
 import { z } from "zod";
 
 export const resetPasswordSchema = z

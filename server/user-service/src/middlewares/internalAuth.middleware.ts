@@ -1,3 +1,4 @@
+//server\user-service\src\middlewares\internalAuth.middleware.ts
 import { Request, Response, NextFunction } from 'express';
 import { env } from '../config/env.js';
 

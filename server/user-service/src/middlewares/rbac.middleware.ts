@@ -1,3 +1,4 @@
+//server\user-service\src\middlewares\rbac.middleware.ts
 import { Response, NextFunction } from 'express';
 import { AuthRequest } from './auth.middleware.js';
 import { AuthorizationError } from '../utils/errors.js';

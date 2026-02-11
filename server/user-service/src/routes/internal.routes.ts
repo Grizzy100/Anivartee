@@ -1,3 +1,4 @@
+//server\user-service\src\routes\internal.routes.ts
 import { Router } from 'express';
 import { ProfileController } from '../controllers/profile.controller.js';
 import { verifyInternalToken } from '../middlewares/internalAuth.middleware.js';

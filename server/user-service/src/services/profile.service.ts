@@ -1,3 +1,4 @@
+//server\user-service\src\services\profile.service.ts
 import prisma from '../utils/prisma.js';
 import { NotFoundError } from '../utils/errors.js';
 import { generateUploadSignature, deleteImage } from '../utils/cloudinary.js';

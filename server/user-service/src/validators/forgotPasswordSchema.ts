@@ -1,3 +1,4 @@
+//server\user-service\src\validators\forgotPasswordSchema.ts
 import { z } from "zod";
 
 export const forgotPasswordSchema = z.object({

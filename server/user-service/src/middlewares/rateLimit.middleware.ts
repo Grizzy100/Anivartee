@@ -1,3 +1,4 @@
+//server\user-service\src\middlewares\rateLimit.middleware.ts
 import rateLimit from 'express-rate-limit';
 import { CONSTANTS } from '../config/constants.js';
 

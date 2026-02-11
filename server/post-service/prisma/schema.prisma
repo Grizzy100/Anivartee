@@ -1,0 +1,294 @@
+//server\post-service\prisma\schema.prisma
+generator client {
+  provider = "prisma-client-js"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  schemas  = ["posts"]
+}
+
+enum LinkStatus {
+  PENDING
+  UNDER_REVIEW
+  VALIDATED
+  DEBUNKED
+  FLAGGED
+
+  @@schema("posts")
+}
+
+enum LinkCategory {
+  WAR
+  FOOD
+  SOCIAL
+  OTHER
+
+  @@schema("posts")
+}
+
+enum FactCheckVerdict {
+  VALIDATED
+  DEBUNKED
+
+  @@schema("posts")
+}
+
+enum SharePlatform {
+  TWITTER
+  FACEBOOK
+  WHATSAPP
+  OTHER
+
+  @@schema("posts")
+}
+
+// Main posts/links table
+model Link {
+  id          String       @id @default(uuid()) @db.Uuid
+  title       String       @db.VarChar(150)
+  url         String       @db.Text
+  description String?      @db.VarChar(400)
+  category    LinkCategory @default(OTHER)
+
+  screenRecordingUrl String? @db.Text
+
+  userId     String     @db.Uuid
+  status     LinkStatus @default(PENDING)
+  isPinned   Boolean    @default(false)
+  totalLikes Int        @default(0)
+
+  // Moderation fields
+  factCheckerId String?   @db.Uuid
+  reviewedBy    String?   @db.Uuid
+  claimedAt     DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  sources    LinkSource[]
+  likes      LinkLike[]
+  shares     LinkShare[]
+  views      LinkView[]
+  flags      LinkFlag[]
+  comments   Comment[]
+  factChecks FactCheck[]
+
+  @@index([userId])
+  @@index([status])
+  @@index([category])
+  @@index([createdAt])
+  @@schema("posts")
+}
+
+model LinkSource {
+  id     String @id @default(uuid()) @db.Uuid
+  linkId String @db.Uuid
+  url    String @db.VarChar(2048)
+
+  createdAt DateTime @default(now())
+
+  link Link @relation(fields: [linkId], references: [id], onDelete: Cascade)
+
+  @@index([linkId])
+  @@schema("posts")
+}
+
+model LinkLike {
+  id     String @id @default(uuid()) @db.Uuid
+  linkId String @db.Uuid
+  userId String @db.Uuid
+
+  createdAt DateTime @default(now())
+
+  link Link @relation(fields: [linkId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, linkId])
+  @@index([linkId])
+  @@index([userId])
+  @@schema("posts")
+}
+
+model LinkShare {
+  id       String         @id @default(uuid()) @db.Uuid
+  linkId   String         @db.Uuid
+  userId   String         @db.Uuid
+  platform SharePlatform?
+
+  createdAt DateTime @default(now())
+
+  link Link @relation(fields: [linkId], references: [id], onDelete: Cascade)
+
+  @@index([linkId])
+  @@index([userId])
+  @@schema("posts")
+}
+
+model LinkView {
+  id        String  @id @default(uuid()) @db.Uuid
+  linkId    String  @db.Uuid
+  userId    String? @db.Uuid
+  ipAddress String? @db.VarChar(45)
+  sessionId String? @db.VarChar(255)
+
+  createdAt DateTime @default(now())
+
+  link Link @relation(fields: [linkId], references: [id], onDelete: Cascade)
+
+  @@index([linkId])
+  @@index([userId])
+  @@schema("posts")
+}
+
+model LinkFlag {
+  id               String @id @default(uuid()) @db.Uuid
+  linkId           String @db.Uuid
+  flaggerUserId    String @db.Uuid
+  flaggerRole      String @db.VarChar(20) // USER or FACT_CHECKER
+  flaggerRankLevel Int    @default(0)
+
+  createdAt DateTime @default(now())
+
+  link Link @relation(fields: [linkId], references: [id], onDelete: Cascade)
+
+  @@index([linkId])
+  @@index([flaggerUserId])
+  @@schema("posts")
+}
+
+model Comment {
+  id      String @id @default(uuid()) @db.Uuid
+  linkId  String @db.Uuid
+  userId  String @db.Uuid
+  content String @db.Text
+
+  parentId String? @db.Uuid
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  link    Link          @relation(fields: [linkId], references: [id], onDelete: Cascade)
+  parent  Comment?      @relation("CommentReplies", fields: [parentId], references: [id], onDelete: Cascade)
+  replies Comment[]     @relation("CommentReplies")
+  likes   CommentLike[]
+
+  @@index([linkId])
+  @@index([userId])
+  @@index([parentId])
+  @@schema("posts")
+}
+
+model CommentLike {
+  id        String @id @default(uuid()) @db.Uuid
+  commentId String @db.Uuid
+  userId    String @db.Uuid
+
+  createdAt DateTime @default(now())
+
+  comment Comment @relation(fields: [commentId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, commentId])
+  @@index([commentId])
+  @@index([userId])
+  @@schema("posts")
+}
+
+model FactCheck {
+  id            String           @id @default(uuid()) @db.Uuid
+  postId        String           @db.Uuid
+  factCheckerId String           @db.Uuid
+  verdict       FactCheckVerdict
+  header        String           @db.Text
+  description   String?          @db.Text
+  referenceUrls String[] // PostgreSQL text array
+
+  createdAt DateTime @default(now())
+
+  post Link @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  @@unique([postId, factCheckerId])
+  @@index([postId])
+  @@index([factCheckerId])
+  @@schema("posts")
+}
+
+// ─── Daily Activity Tracking (calendar dots) ───
+model DailyActivity {
+  id               String   @id @default(uuid()) @db.Uuid
+  userId           String   @db.Uuid
+  date             DateTime @db.Date
+  postsCreated     Int      @default(0)
+  commentsCreated  Int      @default(0)
+  postsFactChecked Int      @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, date])
+  @@index([userId, date(sort: Desc)])
+  @@schema("posts")
+}
+
+// ─── Moderation Queue ───
+enum QueueStatus {
+  PENDING
+  CLAIMED
+  COMPLETED
+  REMOVED
+
+  @@schema("posts")
+}
+
+enum ClaimStatus {
+  ACTIVE
+  COMPLETED
+  EXPIRED
+  ABANDONED
+
+  @@schema("posts")
+}
+
+model ModerationQueue {
+  id       String      @id @default(uuid()) @db.Uuid
+  postId   String      @unique @db.Uuid
+  userId   String      @db.Uuid // Post author
+  status   QueueStatus @default(PENDING)
+  priority Int         @default(0)
+  addedAt  DateTime    @default(now())
+
+  claim ClaimRecord?
+
+  @@index([status, priority, addedAt])
+  @@schema("posts")
+}
+
+model ClaimRecord {
+  id            String      @id @default(uuid()) @db.Uuid
+  queueId       String      @unique @db.Uuid
+  postId        String      @db.Uuid
+  factCheckerId String      @db.Uuid
+  claimedAt     DateTime    @default(now())
+  expiresAt     DateTime // claimedAt + 30 minutes
+  status        ClaimStatus @default(ACTIVE)
+
+  queue ModerationQueue @relation(fields: [queueId], references: [id])
+
+  @@index([factCheckerId, status])
+  @@index([expiresAt, status])
+  @@schema("posts")
+}
+
+model FactCheckDraft {
+  id            String   @id @default(uuid()) @db.Uuid
+  postId        String   @db.Uuid
+  factCheckerId String   @db.Uuid
+  verdict       String?  @db.VarChar(20)
+  header        String?  @db.Text
+  description   String?  @db.Text
+  referenceUrls String[] // PostgreSQL text array
+  lastSavedAt   DateTime @default(now()) @updatedAt
+
+  @@unique([postId, factCheckerId])
+  @@schema("posts")
+}

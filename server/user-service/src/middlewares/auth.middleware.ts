@@ -1,3 +1,4 @@
+//server\user-service\src\middlewares\auth.middleware.ts
 import { Request, Response, NextFunction } from 'express';
 import { verifyAccessToken } from '../utils/jwt.js';
 import { AuthenticationError } from '../utils/errors.js';
@@ -13,7 +14,7 @@ export interface AuthRequest extends Request {
  * Authenticate middleware
  * Verifies JWT access token from Authorization header
  */
-export function authenticate(req: AuthRequest, res: Response, next: NextFunction) {
+export function authenticate(req: Request, res: Response, next: NextFunction) {
   try {
     const authHeader = req.headers.authorization;
     
@@ -78,7 +79,7 @@ export function authenticate(req: AuthRequest, res: Response, next: NextFunction
  * Optional authentication middleware
  * Attaches user if token is present, but doesn't require it
  */
-export function optionalAuth(req: AuthRequest, res: Response, next: NextFunction) {
+export function optionalAuth(req: Request, res: Response, next: NextFunction) {
   try {
     const authHeader = req.headers.authorization;
     

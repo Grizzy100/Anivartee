@@ -1,3 +1,4 @@
+//server\user-service\src\validators\updateAvatarSchema.ts
 import { z } from "zod";
 
 export const updateAvatarSchema = z.object({

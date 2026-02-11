@@ -1,0 +1,34 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  schemas  = ["points"]
+}
+
+// ─── Points ledger ───
+// Every points change is an immutable ledger entry.
+model PointsLedger {
+  id        String   @id @default(uuid()) @db.Uuid
+  userId    String   @db.Uuid
+  points    Int      // can be negative for penalties
+  reason    String   @db.VarChar(50) // POST_CREATED, FACT_CHECK_COMPLETED, PENALTY, etc.
+  contextId String?  @db.Uuid       // related entity ID (postId, factCheckId, etc.)
+  createdAt DateTime @default(now())
+
+  @@index([userId, createdAt])
+  @@index([userId])
+  @@schema("points")
+}
+
+// ─── Aggregate balance (materialized for fast lookups) ───
+model PointsBalance {
+  id        String   @id @default(uuid()) @db.Uuid
+  userId    String   @unique @db.Uuid
+  balance   Int      @default(0)
+  updatedAt DateTime @default(now()) @updatedAt
+
+  @@schema("points")
+}

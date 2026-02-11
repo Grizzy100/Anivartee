@@ -1,26 +1,139 @@
 @import "tailwindcss";
 
+/* Dark Enterprise Color System */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* Backgrounds */
+  --app-bg: #0B0F1A;
+  --surface: #111827;
+  --surface-elevated: #1F2933;
+  
+  /* Accents */
+  --primary: #2563EB;
+  --secondary: #38BDF8;
+  
+  /* Text */
+  --text-primary: #E5E7EB;
+  --text-muted: #9CA3AF;
+  
+  /* Borders */
+  --border: #1F2937;
+  
+  /* Status Colors */
+  --success: #22C55E;
+  --warning: #F59E0B;
 }
 
+/* Tailwind theme tokens */
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  /* Colors */
+  --color-app-bg: var(--app-bg);
+  --color-surface: var(--surface);
+  --color-surface-elevated: var(--surface-elevated);
+  --color-primary: var(--primary);
+  --color-secondary: var(--secondary);
+  --color-text-primary: var(--text-primary);
+  --color-text-muted: var(--text-muted);
+  --color-border: var(--border);
+  --color-success: var(--success);
+  --color-warning: var(--warning);
+
+  /* Fonts */
+  --font-sans: var(--font-inter);
+  --font-display: var(--font-orbitron);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+/* Base Layer */
+@layer base {
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+
+  body {
+    background: var(--app-bg);
+    color: var(--text-primary);
+    font-family: var(--font-inter);
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+/* Custom Utilities */
+@utility scrollbar-hidden {
+  &::-webkit-scrollbar {
+    display: none;
+  }
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* React Day Picker Styles */
+.rdp {
+  --rdp-cell-size: 36px;
+  --rdp-accent-color: var(--primary);
+  --rdp-background-color: var(--surface-elevated);
+  --rdp-outline: 2px solid var(--primary);
+  margin: 0;
+}
+
+.rdp-months {
+  justify-content: center;
+}
+
+.rdp-month {
+  width: 100%;
+}
+
+.rdp-caption_label {
+  font-family: var(--font-display);
+  font-weight: 600;
+  letter-spacing: 0.05em;
+}
+
+.rdp-nav_button {
+  width: 28px;
+  height: 28px;
+}
+
+.rdp-head_cell {
+  font-size: 0.75rem;
+  font-weight: 500;
+  text-transform: uppercase;
+}
+
+.rdp-cell {
+  width: var(--rdp-cell-size);
+  height: var(--rdp-cell-size);
+}
+
+.rdp-day {
+  width: var(--rdp-cell-size);
+  height: var(--rdp-cell-size);
+  font-size: 0.875rem;
+  cursor: pointer;
+}
+
+.rdp-day:hover:not(.rdp-day_selected):not(.rdp-day_disabled) {
+  background-color: var(--surface-elevated);
+  color: var(--text-primary);
+}
+
+.rdp-day_selected {
+  background-color: var(--primary) !important;
+  color: white !important;
+  font-weight: 600;
+}
+
+.rdp-day_today:not(.rdp-day_selected) {
+  background-color: var(--surface-elevated);
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.rdp-day_outside {
+  opacity: 0.4;
+}
+
+.rdp-day_disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
 }

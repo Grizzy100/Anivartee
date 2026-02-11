@@ -1,3 +1,4 @@
+//server\user-service\prisma\schema.prisma
 generator client {
   provider = "prisma-client"
   output   = "../src/generated/prisma"
@@ -12,14 +13,14 @@ enum UserRole {
   USER
   FACT_CHECKER
   ADMIN
-  
+
   @@schema("identity")
 }
 
 enum AccountStatus {
   ACTIVE
   DISABLED
-  
+
   @@schema("identity")
 }
 
@@ -29,7 +30,8 @@ model User {
   email        String @unique @db.VarChar(255)
   username     String @unique @db.VarChar(32)
   passwordHash String @db.Text
-  
+
+  /// Role is immutable after signup - cannot be changed
   role   UserRole      @default(USER)
   status AccountStatus @default(ACTIVE)
 
@@ -48,6 +50,7 @@ model User {
 
   sessions            Session[]
   passwordResetTokens PasswordResetToken[]
+  oauthAccounts       OAuthAccount[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -69,7 +72,8 @@ model Session {
 
   expiresAt DateTime
   revokedAt DateTime?
-  createdAt DateTime @default(now())
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
 
   @@index([userId])
   @@index([expiresAt])
@@ -89,7 +93,7 @@ model UserProfile {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  
+
   @@schema("identity")
 }
 
@@ -98,14 +102,14 @@ model FactCheckerProfile {
   userId String @unique @db.Uuid
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  firstName    String? @db.VarChar(60)
-  lastName     String? @db.VarChar(60)
-  organization String? @db.VarChar(120)
+  firstName    String?   @db.VarChar(60)
+  lastName     String?   @db.VarChar(60)
+  organization String?   @db.VarChar(120)
   verifiedAt   DateTime?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  
+
   @@schema("identity")
 }
 
@@ -118,23 +122,48 @@ model AdminProfile {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  
+
   @@schema("identity")
 }
 
 model PasswordResetToken {
   id String @id @default(uuid()) @db.Uuid
-  
+
   userId String @db.Uuid
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  tokenHash String @unique @db.Text
+  tokenHash String    @unique @db.Text
   usedAt    DateTime?
   expiresAt DateTime
-  createdAt DateTime @default(now())
+  createdAt DateTime  @default(now())
 
   @@index([userId])
   @@index([expiresAt])
   @@index([tokenHash])
+  @@schema("identity")
+}
+
+model OAuthAccount {
+  id String @id @default(uuid()) @db.Uuid
+
+  userId String @db.Uuid
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  provider String @db.VarChar(50) // "google", "github", etc.
+  providerAccountId String @db.Text // unique ID from provider
+  email String? @db.VarChar(255) // optional email from provider
+  name String? @db.VarChar(255) // optional name from provider
+  picture String? @db.Text // optional profile picture URL
+
+  accessToken String? @db.Text // optional access token for API calls
+  refreshToken String? @db.Text // optional refresh token
+  expiresAt DateTime? // token expiration
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([provider, providerAccountId])
+  @@index([userId])
+  @@index([provider])
   @@schema("identity")
 }

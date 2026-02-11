@@ -1,3 +1,4 @@
+//server\user-service\src\utils\jwt.ts
 import jwt from 'jsonwebtoken';
 import { env } from '../config/env.js';
 import { AuthenticationError } from './errors.js';

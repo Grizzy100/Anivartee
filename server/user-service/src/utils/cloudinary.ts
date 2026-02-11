@@ -1,3 +1,4 @@
+//server\user-service\src\utils\cloudinary.ts
 import { v2 as cloudinary } from 'cloudinary';
 import { env } from '../config/env.js';
 import { CONSTANTS } from '../config/constants.js';

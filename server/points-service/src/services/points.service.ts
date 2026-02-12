@@ -26,6 +26,8 @@ export class PointsService {
       maxHeaderLength: cfg.maxHeaderLength,
       maxDescriptionLength: cfg.maxDescriptionLength,
       postsPerDay: cfg.postsPerDay,
+      editsPerDay: cfg.editsPerDay,
+      commentEditWindowHours: cfg.commentEditWindowHours,
       flagsPerDay: cfg.flagsPerDay,
       postPoints: cfg.postPoints,
       flagWeight: cfg.flagWeight

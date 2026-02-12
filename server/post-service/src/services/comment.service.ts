@@ -4,7 +4,7 @@ import { PostRepository } from '../repositories/post.repository.js';
 import { PointsClient } from './clients/points.client.js';
 import { ActivityService } from './activity.service.js';
 import { CreateCommentInput, UpdateCommentInput } from '../validators/comment.schema.js';
-import { NotFoundError, AuthorizationError } from '../utils/errors.js';
+import { NotFoundError, AuthorizationError, RateLimitError } from '../utils/errors.js';
 import { logger } from '../utils/logger.js';
 
 export class CommentService {
@@ -79,7 +79,24 @@ export class CommentService {
         throw new AuthorizationError('You can only edit your own comments');
       }
 
-      // 2. Update comment
+      // 2. Enforce comment edit time window based on rank
+      const rankData = await this.pointsClient.getUserRank(userId);
+      const windowHours = rankData.limits.commentEditWindowHours;
+
+      if (windowHours !== null) {
+        const comment = await this.commentRepo.findById(id);
+        if (comment) {
+          const ageMs = Date.now() - new Date(comment.createdAt).getTime();
+          const windowMs = windowHours * 60 * 60 * 1000;
+          if (ageMs > windowMs) {
+            throw new RateLimitError(
+              `Comments can only be edited within ${windowHours} hours of posting. Increase your rank to edit anytime.`
+            );
+          }
+        }
+      }
+
+      // 3. Update comment
       const comment = await this.commentRepo.update(id, data.content);
 
       logger.info(`Comment updated: ${id} by user ${userId}`);

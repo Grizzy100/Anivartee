@@ -67,6 +67,7 @@ export class PostRepository {
       const { sources, ...postData } = data as any;
 
       const updateData: any = { ...postData };
+      logger.info('Preparing to update post', { id, updateData });
 
       if (sources && Array.isArray(sources)) {
         updateData.sources = {
@@ -75,13 +76,17 @@ export class PostRepository {
         };
       }
 
-      return await prisma.link.update({
+      const result = await prisma.link.update({
         where: { id },
         data: updateData,
         include: {
           sources: true
         }
       });
+
+      logger.info('Prisma update result:', { id, result });
+
+      return result;
     } catch (error: any) {
       logger.error('Database error in post.update:', error);
       throw new DatabaseError('Failed to update post');

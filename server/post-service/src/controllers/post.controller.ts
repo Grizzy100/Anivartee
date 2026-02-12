@@ -46,10 +46,14 @@ export class PostController {
   async updatePost(req: AuthRequest, res: Response) {
     try {
       const id = getParam(req.params.id); // ✅ FIXED
+      logger.info('UpdatePost called', { postId: id, user: req.user?.userId });
+      logger.info('Request body (raw):', req.body);
       const userId = req.user!.userId;
+      const userRole = req.user!.role;
       const validatedData = updatePostSchema.parse(req.body);
+      logger.info('Validated update data:', validatedData);
       
-      const post = await this.postService.updatePost(id, userId, validatedData);
+      const post = await this.postService.updatePost(id, userId, userRole, validatedData);
       
       return ResponseUtil.success(res, post);
     } catch (error: any) {

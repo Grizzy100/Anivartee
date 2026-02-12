@@ -219,6 +219,7 @@ model DailyActivity {
   userId           String   @db.Uuid
   date             DateTime @db.Date
   postsCreated     Int      @default(0)
+  postsEdited      Int      @default(0)
   commentsCreated  Int      @default(0)
   postsFactChecked Int      @default(0)
 

@@ -11,9 +11,11 @@ const NOVICE_FALLBACK: Omit<UserRankData, 'userId'> = {
   rankName: 'Novice',
   points: 0,
   limits: {
-    maxHeaderLength: 20,
-    maxDescriptionLength: 60,
+    maxHeaderLength: 80,
+    maxDescriptionLength: 200,
     postsPerDay: 2,
+    editsPerDay: 1,
+    commentEditWindowHours: 12,
     flagsPerDay: 2,
     postPoints: 3,
     flagWeight: 0.5

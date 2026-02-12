@@ -20,6 +20,13 @@ export class ActivityService {
   }
 
   /**
+   * Get the number of post edits a user has made today.
+   */
+  async getEditCountToday(userId: string): Promise<number> {
+    return this.activityRepo.getEditCountToday(userId);
+  }
+
+  /**
    * Return calendar data for a given month.
    *
    * Response shape:
@@ -40,16 +47,17 @@ export class ActivityService {
     const rows = await this.activityRepo.getByMonth(userId, year, month);
 
     const activeDays: string[] = [];
-    const details: Record<string, { posts: number; comments: number; factChecks: number }> = {};
+    const details: Record<string, { posts: number; edits: number; comments: number; factChecks: number }> = {};
 
     for (const row of rows) {
-      const total = row.postsCreated + row.commentsCreated + row.postsFactChecked;
+      const total = row.postsCreated + row.postsEdited + row.commentsCreated + row.postsFactChecked;
       if (total === 0) continue;
 
       const dateStr = row.date.toISOString().slice(0, 10); // "YYYY-MM-DD"
       activeDays.push(dateStr);
       details[dateStr] = {
         posts: row.postsCreated,
+        edits: row.postsEdited,
         comments: row.commentsCreated,
         factChecks: row.postsFactChecked
       };

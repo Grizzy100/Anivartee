@@ -13,6 +13,8 @@ export interface RankLimits {
   maxHeaderLength: number;
   maxDescriptionLength: number;
   postsPerDay: number;
+  editsPerDay: number;
+  commentEditWindowHours: number | null;
   flagsPerDay: number;
   postPoints: number;
   flagWeight: number;

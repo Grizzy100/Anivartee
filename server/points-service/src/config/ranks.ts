@@ -12,6 +12,8 @@ export interface RankConfig {
   maxHeaderLength: number;
   maxDescriptionLength: number;
   postsPerDay: number;
+  editsPerDay: number;
+  commentEditWindowHours: number | null; // null = unlimited
   flagsPerDay: number;
   postPoints: number;
   flagWeight: number;
@@ -22,9 +24,11 @@ export const USER_RANKS: Record<string, RankConfig> = {
   TRUSTED: {
     rank: 'Trusted',
     minPoints: 1500,
-    maxHeaderLength: 50,
-    maxDescriptionLength: 200,
+    maxHeaderLength: 150,
+    maxDescriptionLength: 400,
     postsPerDay: 5,
+    editsPerDay: 4,
+    commentEditWindowHours: null,
     flagsPerDay: 7,
     postPoints: 9,
     flagWeight: 2,
@@ -33,9 +37,11 @@ export const USER_RANKS: Record<string, RankConfig> = {
   RESEARCHER: {
     rank: 'Researcher',
     minPoints: 750,
-    maxHeaderLength: 50,
-    maxDescriptionLength: 140,
+    maxHeaderLength: 130,
+    maxDescriptionLength: 350,
     postsPerDay: 5,
+    editsPerDay: 4,
+    commentEditWindowHours: null,
     flagsPerDay: 5,
     postPoints: 7,
     flagWeight: 1.3,
@@ -44,9 +50,11 @@ export const USER_RANKS: Record<string, RankConfig> = {
   CONTRIBUTOR: {
     rank: 'Contributor',
     minPoints: 300,
-    maxHeaderLength: 30,
-    maxDescriptionLength: 100,
+    maxHeaderLength: 100,
+    maxDescriptionLength: 300,
     postsPerDay: 3,
+    editsPerDay: 2,
+    commentEditWindowHours: 12,
     flagsPerDay: 3,
     postPoints: 4,
     flagWeight: 0.8,
@@ -55,9 +63,11 @@ export const USER_RANKS: Record<string, RankConfig> = {
   NOVICE: {
     rank: 'Novice',
     minPoints: 0,
-    maxHeaderLength: 20,
-    maxDescriptionLength: 60,
+    maxHeaderLength: 80,
+    maxDescriptionLength: 200,
     postsPerDay: 2,
+    editsPerDay: 1,
+    commentEditWindowHours: 12,
     flagsPerDay: 2,
     postPoints: 3,
     flagWeight: 0.5,
@@ -69,9 +79,11 @@ export const CHECKER_RANKS: Record<string, RankConfig> = {
   SENTINEL: {
     rank: 'Sentinel',
     minPoints: 1500,
-    maxHeaderLength: 50,
-    maxDescriptionLength: 350,
+    maxHeaderLength: 150,
+    maxDescriptionLength: 400,
     postsPerDay: 5,
+    editsPerDay: 4,
+    commentEditWindowHours: null,
     flagsPerDay: 10,
     postPoints: 4,
     flagWeight: 3.5,
@@ -80,9 +92,11 @@ export const CHECKER_RANKS: Record<string, RankConfig> = {
   SPECIALIST: {
     rank: 'Specialist',
     minPoints: 800,
-    maxHeaderLength: 50,
-    maxDescriptionLength: 290,
+    maxHeaderLength: 140,
+    maxDescriptionLength: 380,
     postsPerDay: 5,
+    editsPerDay: 4,
+    commentEditWindowHours: null,
     flagsPerDay: 10,
     postPoints: 4,
     flagWeight: 2,
@@ -91,9 +105,11 @@ export const CHECKER_RANKS: Record<string, RankConfig> = {
   INVESTIGATOR: {
     rank: 'Investigator',
     minPoints: 400,
-    maxHeaderLength: 40,
-    maxDescriptionLength: 240,
+    maxHeaderLength: 120,
+    maxDescriptionLength: 350,
     postsPerDay: 4,
+    editsPerDay: 3,
+    commentEditWindowHours: null,
     flagsPerDay: 7,
     postPoints: 4,
     flagWeight: 1.5,
@@ -102,9 +118,11 @@ export const CHECKER_RANKS: Record<string, RankConfig> = {
   ANALYST: {
     rank: 'Analyst',
     minPoints: 200,
-    maxHeaderLength: 30,
-    maxDescriptionLength: 180,
+    maxHeaderLength: 100,
+    maxDescriptionLength: 300,
     postsPerDay: 3,
+    editsPerDay: 2,
+    commentEditWindowHours: 12,
     flagsPerDay: 5,
     postPoints: 4,
     flagWeight: 1.2,
@@ -113,9 +131,11 @@ export const CHECKER_RANKS: Record<string, RankConfig> = {
   APPRENTICE: {
     rank: 'Apprentice',
     minPoints: 0,
-    maxHeaderLength: 20,
-    maxDescriptionLength: 140,
+    maxHeaderLength: 80,
+    maxDescriptionLength: 250,
     postsPerDay: 2,
+    editsPerDay: 1,
+    commentEditWindowHours: 12,
     flagsPerDay: 3,
     postPoints: 4,
     flagWeight: 1,

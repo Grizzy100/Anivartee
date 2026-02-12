@@ -87,18 +87,30 @@ export class PostService {
     }
   }
 
-  async updatePost(id: string, userId: string, data: UpdatePostInput) {
+  async updatePost(id: string, userId: string, userRole: string, data: UpdatePostInput) {
     try {
-      // 1. Check ownership
-      const isOwner = await this.postRepo.checkOwnership(id, userId);
-      if (!isOwner) {
-        throw new AuthorizationError('You can only edit your own posts');
+      const isFactChecker = userRole === 'FACT_CHECKER' || userRole === 'ADMIN';
+
+      // 1. Check ownership — fact-checkers / admins can edit any post
+      if (!isFactChecker) {
+        const isOwner = await this.postRepo.checkOwnership(id, userId);
+        if (!isOwner) {
+          throw new AuthorizationError('You can only edit your own posts');
+        }
       }
 
       // 2. Get user's rank for validation
       const rankData = await this.pointsClient.getUserRank(userId);
 
-      // 3. Validate lengths
+      // 3. Check daily edit limit
+      const editCount = await this.activityService.getEditCountToday(userId);
+      if (editCount >= rankData.limits.editsPerDay) {
+        throw new RateLimitError(
+          `Daily edit limit (${rankData.limits.editsPerDay}) reached. Increase your rank to edit more.`
+        );
+      }
+
+      // 4. Validate lengths
       if (data.title && data.title.length > rankData.limits.maxHeaderLength) {
         throw new ValidationError(
           `Title must be ${rankData.limits.maxHeaderLength} characters or less for your rank.`
@@ -111,8 +123,11 @@ export class PostService {
         );
       }
 
-      // 4. Update post
+      // 5. Update post
       const post = await this.postRepo.update(id, data);
+
+      // 6. Record edit activity
+      this.activityService.recordActivity(userId, 'POST_EDITED');
 
       logger.info(`Post updated: ${id} by user ${userId}`);
 

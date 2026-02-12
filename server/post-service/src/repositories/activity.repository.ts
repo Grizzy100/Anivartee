@@ -3,7 +3,7 @@ import prisma from '../utils/prisma.js';
 import { DatabaseError } from '../utils/errors.js';
 import { logger } from '../utils/logger.js';
 
-export type ActivityType = 'POST_CREATED' | 'COMMENT_CREATED' | 'FACT_CHECK_COMPLETED';
+export type ActivityType = 'POST_CREATED' | 'POST_EDITED' | 'COMMENT_CREATED' | 'FACT_CHECK_COMPLETED';
 
 export class ActivityRepository {
   /**
@@ -58,6 +58,23 @@ export class ActivityRepository {
 
   // ─── helpers ───
 
+  /**
+   * Get today's edit count for a user (for daily edit limit enforcement).
+   */
+  async getEditCountToday(userId: string): Promise<number> {
+    try {
+      const today = this.todayDate();
+      const row = await prisma.dailyActivity.findUnique({
+        where: { userId_date: { userId, date: today } },
+        select: { postsEdited: true }
+      });
+      return row?.postsEdited ?? 0;
+    } catch (error) {
+      logger.error('Database error in activity.getEditCountToday:', error);
+      throw new DatabaseError('Failed to fetch edit count');
+    }
+  }
+
   private todayDate(): Date {
     const now = new Date();
     return new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));
@@ -66,6 +83,7 @@ export class ActivityRepository {
   private fieldForType(type: ActivityType): string {
     switch (type) {
       case 'POST_CREATED':          return 'postsCreated';
+      case 'POST_EDITED':           return 'postsEdited';
       case 'COMMENT_CREATED':       return 'commentsCreated';
       case 'FACT_CHECK_COMPLETED':  return 'postsFactChecked';
       default:                      return 'postsCreated';

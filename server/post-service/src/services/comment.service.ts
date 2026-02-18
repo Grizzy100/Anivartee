@@ -45,8 +45,9 @@ export class CommentService {
         comment.id
       ).catch(err => logger.error('Failed to award points:', err));
 
-      // 5. Record activity (async, don't wait)
-      this.activityService.recordActivity(userId, 'COMMENT_CREATED');
+      // 5. Recalculate hot score (async, don't wait)
+      this.postRepo.recalculateHotScore(linkId)
+        .catch(err => logger.error('Failed to recalculate hot score:', err));
 
       logger.info(`Comment created: ${comment.id} by user ${userId} on post ${linkId}`);
       return comment;
@@ -116,8 +117,18 @@ export class CommentService {
         throw new AuthorizationError('You can only delete your own comments');
       }
 
-      // 2. Delete comment (cascade deletes replies)
+      // 2. Get the comment's linkId before deletion for hot score recalc
+      const comment = await this.commentRepo.findById(id);
+      const linkId = comment?.linkId;
+
+      // 3. Delete comment (cascade deletes replies)
       await this.commentRepo.delete(id);
+
+      // 4. Recalculate hot score (async, don't wait)
+      if (linkId) {
+        this.postRepo.recalculateHotScore(linkId)
+          .catch(err => logger.error('Failed to recalculate hot score:', err));
+      }
 
       logger.info(`Comment deleted: ${id} by user ${userId}`);
     } catch (error: any) {

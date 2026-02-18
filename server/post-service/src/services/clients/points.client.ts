@@ -46,6 +46,30 @@ export class PointsClient {
   }
 
   /**
+   * Fetch rank data for multiple users with bounded concurrency.
+   * Returns a Map keyed by userId.
+   */
+  async getUserRanksByIds(userIds: string[]): Promise<Map<string, UserRankData>> {
+    const uniqueIds = [...new Set(userIds)];
+    if (uniqueIds.length === 0) return new Map();
+
+    const rankMap = new Map<string, UserRankData>();
+    const BATCH = 5;
+
+    for (let i = 0; i < uniqueIds.length; i += BATCH) {
+      const batch = uniqueIds.slice(i, i + BATCH);
+      const results = await Promise.all(
+        batch.map((id) => this.getUserRank(id))
+      );
+      for (const rank of results) {
+        rankMap.set(rank.userId, rank);
+      }
+    }
+
+    return rankMap;
+  }
+
+  /**
    * Award (or deduct) points. Fire-and-forget safe — callers should not
    * block on or fail from a points error.
    */

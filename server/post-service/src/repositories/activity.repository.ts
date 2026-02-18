@@ -3,7 +3,7 @@ import prisma from '../utils/prisma.js';
 import { DatabaseError } from '../utils/errors.js';
 import { logger } from '../utils/logger.js';
 
-export type ActivityType = 'POST_CREATED' | 'POST_EDITED' | 'COMMENT_CREATED' | 'FACT_CHECK_COMPLETED';
+export type ActivityType = 'POST_CREATED' | 'POST_EDITED' | 'FACT_CHECK_COMPLETED';
 
 export class ActivityRepository {
   /**
@@ -84,7 +84,6 @@ export class ActivityRepository {
     switch (type) {
       case 'POST_CREATED':          return 'postsCreated';
       case 'POST_EDITED':           return 'postsEdited';
-      case 'COMMENT_CREATED':       return 'commentsCreated';
       case 'FACT_CHECK_COMPLETED':  return 'postsFactChecked';
       default:                      return 'postsCreated';
     }

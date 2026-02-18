@@ -3,7 +3,7 @@ import { z } from 'zod';
 
 export const recordActivitySchema = z.object({
   userId: z.string().uuid(),
-  activityType: z.enum(['POST_CREATED', 'COMMENT_CREATED', 'FACT_CHECK_COMPLETED'])
+  activityType: z.enum(['POST_CREATED', 'FACT_CHECK_COMPLETED'])
 });
 
 export const calendarQuerySchema = z.object({

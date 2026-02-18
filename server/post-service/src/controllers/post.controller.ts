@@ -85,9 +85,11 @@ export class PostController {
     try {
       const userId = getParam(req.params.userId); // ✅ FIXED
       const page = parseInt(req.query.page as string) || 1;
-      const pageSize = parseInt(req.query.pageSize as string) || 20;
+      const pageSize = Math.min(parseInt(req.query.pageSize as string) || 20, 100);
+      const status = req.query.status as string | undefined;
+      const sortBy = req.query.sortBy as string | undefined;
       
-      const result = await this.postService.getUserPosts(userId, page, pageSize);
+      const result = await this.postService.getUserPosts(userId, page, pageSize, status, sortBy);
       
       return ResponseUtil.paginated(
         res,

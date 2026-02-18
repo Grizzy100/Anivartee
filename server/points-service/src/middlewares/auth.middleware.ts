@@ -25,9 +25,37 @@ export function authenticate(req: AuthRequest, res: Response, next: NextFunction
     const payload = verifyAccessToken(token);
     req.user = payload;
     next();
-  } catch (error) {
-    // Let the error middleware handle all auth errors uniformly
-    next(error);
+  } catch (error: any) {
+    // Handle JWT-specific errors with proper codes for client-side retry
+    if (error.name === 'TokenExpiredError') {
+      return res.status(401).json({
+        success: false,
+        error: 'Access token expired',
+        code: 'TOKEN_EXPIRED'
+      });
+    }
+
+    if (error.name === 'JsonWebTokenError') {
+      return res.status(401).json({
+        success: false,
+        error: 'Invalid access token',
+        code: 'INVALID_TOKEN'
+      });
+    }
+
+    if (error instanceof AuthenticationError) {
+      return res.status(401).json({
+        success: false,
+        error: error.message,
+        code: 'AUTHENTICATION_FAILED'
+      });
+    }
+
+    res.status(401).json({
+      success: false,
+      error: 'Authentication failed',
+      code: 'AUTHENTICATION_FAILED'
+    });
   }
 }
 

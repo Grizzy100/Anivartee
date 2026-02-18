@@ -47,10 +47,10 @@ export class ActivityService {
     const rows = await this.activityRepo.getByMonth(userId, year, month);
 
     const activeDays: string[] = [];
-    const details: Record<string, { posts: number; edits: number; comments: number; factChecks: number }> = {};
+    const details: Record<string, { posts: number; edits: number; factChecks: number }> = {};
 
     for (const row of rows) {
-      const total = row.postsCreated + row.postsEdited + row.commentsCreated + row.postsFactChecked;
+      const total = row.postsCreated + row.postsEdited + row.postsFactChecked;
       if (total === 0) continue;
 
       const dateStr = row.date.toISOString().slice(0, 10); // "YYYY-MM-DD"
@@ -58,7 +58,6 @@ export class ActivityService {
       details[dateStr] = {
         posts: row.postsCreated,
         edits: row.postsEdited,
-        comments: row.commentsCreated,
         factChecks: row.postsFactChecked
       };
     }

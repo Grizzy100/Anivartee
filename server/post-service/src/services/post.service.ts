@@ -1,8 +1,10 @@
 //server\post-service\src\services\post.service.ts
 import { PostRepository } from '../repositories/post.repository.js';
 import { PointsClient } from './clients/points.client.js';
+import { UserClient } from './clients/user.client.js';
 import { QueueService } from './queue.service.js';
 import { ActivityService } from './activity.service.js';
+import { enrichPostsWithUserData } from '../utils/enrichment.js';
 import { CreatePostInput, UpdatePostInput } from '../validators/post.schema.js';
 import { 
   NotFoundError, 
@@ -17,7 +19,8 @@ export class PostService {
     private postRepo: PostRepository,
     private pointsClient: PointsClient,
     private queueService: QueueService,
-    private activityService: ActivityService
+    private activityService: ActivityService,
+    private userClient?: UserClient
   ) {}
 
   async createPost(userId: string, data: CreatePostInput) {
@@ -63,6 +66,10 @@ export class PostService {
 
       // 7. Record activity (async, don't wait)
       this.activityService.recordActivity(userId, 'POST_CREATED');
+
+      // 8. Compute initial hot score (async, don't wait)
+      this.postRepo.recalculateHotScore(post.id)
+        .catch(err => logger.error('Failed to compute initial hot score:', err));
 
       logger.info(`Post created: ${post.id} by user ${userId}`);
       return post;
@@ -160,9 +167,18 @@ export class PostService {
     }
   }
 
-  async getUserPosts(userId: string, page: number, pageSize: number) {
+  async getUserPosts(userId: string, page: number, pageSize: number, status?: string, sortBy?: string) {
     try {
-      return await this.postRepo.getUserPosts(userId, page, pageSize);
+      const result = await this.postRepo.getUserPosts(userId, page, pageSize, status, sortBy);
+
+      // Enrich posts with author profile + rank data
+      const enriched = await enrichPostsWithUserData(
+        result.posts,
+        this.userClient ?? null,
+        this.pointsClient,
+      );
+
+      return { ...result, posts: enriched };
     } catch (error: any) {
       logger.error('Error in getUserPosts service:', error);
       throw error;
@@ -178,6 +194,10 @@ export class PostService {
       }
 
       await this.postRepo.updateStatus(id, status);
+
+      // Recalculate hot score after status change
+      this.postRepo.recalculateHotScore(id)
+        .catch(err => logger.error('Failed to recalculate hot score:', err));
 
       logger.info(`Post status updated: ${id} to ${status}`);
     } catch (error: any) {

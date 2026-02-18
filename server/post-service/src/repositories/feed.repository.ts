@@ -3,111 +3,88 @@ import prisma from '../utils/prisma.js';
 import { logger } from '../utils/logger.js';
 import { DatabaseError } from '../utils/errors.js';
 
+import { LinkStatus } from '../generated/prisma/index.js';
+
+// Shared Prisma include block for feed queries
+function feedInclude(userId: string | null) {
+  return {
+    sources: true,
+    factChecks: {
+      orderBy: { createdAt: 'desc' as const },
+      take: 1,
+    },
+    _count: {
+      select: {
+        likes: true,
+        comments: true,
+        views: true,
+        flags: true,
+        shares: true,
+      },
+    },
+    // Per-user interaction state (empty array when no match)
+    ...(userId
+      ? {
+          likes: {
+            where: { userId },
+            select: { id: true },
+            take: 1,
+          },
+          saves: {
+            where: { userId },
+            select: { id: true },
+            take: 1,
+          },
+        }
+      : {}),
+  };
+}
+
 export class FeedRepository {
   async getHomeFeed(userId: string | null, page: number, pageSize: number) {
     try {
       const skip = (page - 1) * pageSize;
+      const where = { status: { in: [LinkStatus.VALIDATED, LinkStatus.PENDING] } };
 
       const [posts, total] = await Promise.all([
         prisma.link.findMany({
-          where: {
-            status: {
-              in: ['VALIDATED', 'PENDING']
-            }
-          },
-          include: {
-            sources: true,
-            factChecks: {
-              orderBy: { createdAt: 'desc' },
-              take: 1
-            },
-            _count: {
-              select: {
-                likes: true,
-                comments: true,
-                views: true,
-                flags: true
-              }
-            }
-          },
-          orderBy: { createdAt: 'desc' },
+          where,
+          include: feedInclude(userId),
+          orderBy: { hotScore: 'desc' },
           skip,
-          take: pageSize
+          take: pageSize,
         }),
-        prisma.link.count({
-          where: {
-            status: {
-              in: ['VALIDATED', 'PENDING']
-            }
-          }
-        })
+        prisma.link.count({ where }),
       ]);
 
-      return {
-        posts,
-        total,
-        page,
-        pageSize,
-        totalPages: Math.ceil(total / pageSize)
-      };
+      return { posts, total, page, pageSize, totalPages: Math.ceil(total / pageSize) };
     } catch (error: any) {
       logger.error('Database error in feed.getHomeFeed:', error);
       throw new DatabaseError('Failed to fetch home feed');
     }
   }
 
-  async getTrendingFeed(page: number, pageSize: number) {
+  async getTrendingFeed(userId: string | null, page: number, pageSize: number) {
     try {
       const skip = (page - 1) * pageSize;
       const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+      const where = {
+        status: 'VALIDATED' as const,
+        createdAt: { gte: sevenDaysAgo },
+      };
 
       const [posts, total] = await Promise.all([
         prisma.link.findMany({
-          where: {
-            status: 'VALIDATED',
-            createdAt: {
-              gte: sevenDaysAgo
-            }
-          },
-          include: {
-            sources: true,
-            factChecks: {
-              orderBy: { createdAt: 'desc' },
-              take: 1
-            },
-            _count: {
-              select: {
-                likes: true,
-                comments: true,
-                views: true,
-                flags: true
-              }
-            }
-          },
-          orderBy: [
-            { totalLikes: 'desc' },
-            { createdAt: 'desc' }
-          ],
+          where,
+          include: feedInclude(userId),
+          orderBy: { hotScore: 'desc' },
           skip,
-          take: pageSize
+          take: pageSize,
         }),
-        prisma.link.count({
-          where: {
-            status: 'VALIDATED',
-            createdAt: {
-              gte: sevenDaysAgo
-            }
-          }
-        })
+        prisma.link.count({ where }),
       ]);
 
-      return {
-        posts,
-        total,
-        page,
-        pageSize,
-        totalPages: Math.ceil(total / pageSize)
-      };
+      return { posts, total, page, pageSize, totalPages: Math.ceil(total / pageSize) };
     } catch (error: any) {
       logger.error('Database error in feed.getTrendingFeed:', error);
       throw new DatabaseError('Failed to fetch trending feed');

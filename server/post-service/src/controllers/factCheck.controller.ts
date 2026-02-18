@@ -46,4 +46,25 @@ export class FactCheckController {
       throw error;
     }
   }
+
+  async getMyFactChecks(req: AuthRequest, res: Response) {
+    try {
+      const factCheckerId = req.user!.userId;
+      const page = parseInt(req.query.page as string) || 1;
+      const pageSize = Math.min(parseInt(req.query.pageSize as string) || 20, 100);
+
+      const result = await this.factCheckService.getFactChecksByChecker(factCheckerId, page, pageSize);
+
+      return ResponseUtil.paginated(
+        res,
+        result.factChecks,
+        result.page,
+        result.pageSize,
+        result.total
+      );
+    } catch (error: any) {
+      logger.error('Get my fact-checks controller error:', error);
+      throw error;
+    }
+  }
 }

@@ -1,11 +1,4 @@
-/**
- * Authoritative rank configuration for Anivartee.
- * All other services use PointsClient to fetch rank data from here.
- *
- * User ranks:    NOVICE → CONTRIBUTOR → RESEARCHER → TRUSTED
- * Checker ranks: APPRENTICE → ANALYST → INVESTIGATOR → SPECIALIST → SENTINEL
- */
-
+//server\points-service\src\config\ranks.ts
 export interface RankConfig {
   rank: string;
   minPoints: number;
@@ -143,6 +136,6 @@ export const CHECKER_RANKS: Record<string, RankConfig> = {
   }
 };
 
-/** Ordered high → low for rank computation */
+
 export const ORDERED_USER_RANKS = ['TRUSTED', 'RESEARCHER', 'CONTRIBUTOR', 'NOVICE'] as const;
 export const ORDERED_CHECKER_RANKS = ['SENTINEL', 'SPECIALIST', 'INVESTIGATOR', 'ANALYST', 'APPRENTICE'] as const;

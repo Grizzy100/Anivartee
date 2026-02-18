@@ -158,6 +158,7 @@ export class ProfileService {
         select: {
           id: true,
           username: true,
+          displayName: true,
           role: true,
           status: true,
           avatarUrl: true

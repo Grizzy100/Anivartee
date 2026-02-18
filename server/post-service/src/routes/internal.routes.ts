@@ -12,6 +12,7 @@ import { FactCheckRepository } from '../repositories/factCheck.repository.js';
 import { ActivityRepository } from '../repositories/activity.repository.js';
 import { QueueRepository } from '../repositories/queue.repository.js';
 import { PointsClient } from '../services/clients/points.client.js';
+import { UserClient } from '../services/clients/user.client.js';
 import { verifyInternalToken } from '../middlewares/internalAuth.middleware.js';
 
 import { asyncHandler } from '../utils/asyncHandler.js';
@@ -26,11 +27,12 @@ const pointsClient = new PointsClient();
 const activityRepo = new ActivityRepository();
 const queueService = new QueueService(queueRepo);
 const activityService = new ActivityService(activityRepo);
-const postService = new PostService(postRepo, pointsClient, queueService, activityService);
+const postService = new PostService(postRepo, pointsClient, queueService, activityService, new UserClient());
 const factCheckService = new FactCheckService(factCheckRepo, postRepo, pointsClient, activityService);
 const internalController = new InternalController(postService, factCheckService);
 const activityController = new ActivityController(activityService);
-const queueController = new QueueController(queueService);
+const userClient = new UserClient();
+const queueController = new QueueController(queueService, userClient, pointsClient);
 
 // All internal routes require service token
 router.use(verifyInternalToken);

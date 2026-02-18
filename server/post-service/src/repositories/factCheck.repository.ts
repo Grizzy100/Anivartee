@@ -60,4 +60,52 @@ export class FactCheckRepository {
       throw new DatabaseError('Failed to find fact-check');
     }
   }
+
+  /**
+   * Get all fact-checks submitted by a specific checker, with enriched post data.
+   * Used for the "My Fact-Checks" tab on the fact-checker dashboard.
+   */
+  async getFactChecksByChecker(factCheckerId: string, page: number, pageSize: number) {
+    try {
+      const skip = (page - 1) * pageSize;
+      const where = { factCheckerId };
+
+      const [factChecks, total] = await Promise.all([
+        prisma.factCheck.findMany({
+          where,
+          include: {
+            post: {
+              include: {
+                sources: true,
+                _count: {
+                  select: {
+                    likes: true,
+                    comments: true,
+                    views: true,
+                    flags: true,
+                    shares: true,
+                  },
+                },
+              },
+            },
+          },
+          orderBy: { createdAt: 'desc' },
+          skip,
+          take: pageSize,
+        }),
+        prisma.factCheck.count({ where }),
+      ]);
+
+      return {
+        factChecks,
+        total,
+        page,
+        pageSize,
+        totalPages: Math.ceil(total / pageSize),
+      };
+    } catch (error: any) {
+      logger.error('Database error in factCheck.getFactChecksByChecker:', error);
+      throw new DatabaseError('Failed to fetch fact-checks by checker');
+    }
+  }
 }

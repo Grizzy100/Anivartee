@@ -101,7 +101,7 @@ export class InteractionController {
     try {
       const userId = req.user!.userId;
       const page = parseInt(req.query.page as string) || 1;
-      const pageSize = parseInt(req.query.pageSize as string) || 20;
+const pageSize = Math.min(parseInt(req.query.pageSize as string) || 20, 100);
       
       const result = await this.interactionService.getSavedPosts(userId, page, pageSize);
       

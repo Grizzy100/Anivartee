@@ -58,6 +58,7 @@ model Link {
   status     LinkStatus @default(PENDING)
   isPinned   Boolean    @default(false)
   totalLikes Int        @default(0)
+  hotScore   Float      @default(0)
 
   // Moderation fields
   factCheckerId String?   @db.Uuid
@@ -67,18 +68,21 @@ model Link {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  sources    LinkSource[]
-  likes      LinkLike[]
-  shares     LinkShare[]
-  views      LinkView[]
-  flags      LinkFlag[]
-  comments   Comment[]
-  factChecks FactCheck[]
+  sources         LinkSource[]
+  likes           LinkLike[]
+  saves           LinkSave[]
+  shares          LinkShare[]
+  views           LinkView[]
+  flags           LinkFlag[]
+  comments        Comment[]
+  factChecks      FactCheck[]
+  moderationQueue ModerationQueue?
 
   @@index([userId])
   @@index([status])
   @@index([category])
   @@index([createdAt])
+  @@index([status, hotScore])
   @@schema("posts")
 }
 
@@ -107,6 +111,22 @@ model LinkLike {
   @@unique([userId, linkId])
   @@index([linkId])
   @@index([userId])
+  @@schema("posts")
+}
+
+model LinkSave {
+  id     String @id @default(uuid()) @db.Uuid
+  linkId String @db.Uuid
+  userId String @db.Uuid
+
+  createdAt DateTime @default(now())
+
+  link Link @relation(fields: [linkId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, linkId])
+  @@index([linkId])
+  @@index([userId])
+  @@map("link_saves")
   @@schema("posts")
 }
 
@@ -258,6 +278,7 @@ model ModerationQueue {
   priority Int         @default(0)
   addedAt  DateTime    @default(now())
 
+  post  Link          @relation(fields: [postId], references: [id], onDelete: Cascade)
   claim ClaimRecord?
 
   @@index([status, priority, addedAt])

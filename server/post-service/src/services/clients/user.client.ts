@@ -6,8 +6,9 @@ import { logger } from '../../utils/logger.js';
 export interface UserProfile {
   id: string;
   username: string;
+  displayName?: string | null;
   role: string;
-  avatarUrl?: string;
+  avatarUrl?: string | null;
 }
 
 /** Max parallel HTTP calls to user-service when fetching many users. */

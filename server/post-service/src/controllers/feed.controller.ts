@@ -12,7 +12,7 @@ export class FeedController {
     try {
       const userId = req.user?.userId || null;
       const page = parseInt(req.query.page as string) || 1;
-      const pageSize = parseInt(req.query.pageSize as string) || 20;
+      const pageSize = Math.min(parseInt(req.query.pageSize as string) || 20, 100);
       
       const result = await this.feedService.getHomeFeed(userId, page, pageSize);
       
@@ -31,10 +31,11 @@ export class FeedController {
 
   async getTrendingFeed(req: AuthRequest, res: Response) {
     try {
+      const userId = req.user?.userId || null;
       const page = parseInt(req.query.page as string) || 1;
-      const pageSize = parseInt(req.query.pageSize as string) || 20;
+      const pageSize = Math.min(parseInt(req.query.pageSize as string) || 20, 100);
       
-      const result = await this.feedService.getTrendingFeed(page, pageSize);
+      const result = await this.feedService.getTrendingFeed(userId, page, pageSize);
       
       return ResponseUtil.paginated(
         res,
@@ -52,7 +53,7 @@ export class FeedController {
   async getControversialFeed(req: AuthRequest, res: Response) {
     try {
       const page = parseInt(req.query.page as string) || 1;
-      const pageSize = parseInt(req.query.pageSize as string) || 20;
+      const pageSize = Math.min(parseInt(req.query.pageSize as string) || 20, 100);
       
       const result = await this.feedService.getControversialFeed(page, pageSize);
       

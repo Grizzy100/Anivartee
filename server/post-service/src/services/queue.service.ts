@@ -77,6 +77,13 @@ export class QueueService {
   }
 
   /**
+   * Get paginated list of posts claimed by a specific fact-checker.
+   */
+  async getClaimedByFactChecker(factCheckerId: string, page: number, pageSize: number) {
+    return this.queueRepo.getClaimedByFactChecker(factCheckerId, page, pageSize);
+  }
+
+  /**
    * Remove a post from the queue (e.g., when the post is deleted).
    */
   async removeFromQueue(postId: string) {

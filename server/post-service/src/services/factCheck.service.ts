@@ -86,4 +86,13 @@ export class FactCheckService {
       throw error;
     }
   }
+
+  async getFactChecksByChecker(factCheckerId: string, page: number, pageSize: number) {
+    try {
+      return await this.factCheckRepo.getFactChecksByChecker(factCheckerId, page, pageSize);
+    } catch (error: any) {
+      logger.error('Error in getFactChecksByChecker service:', error);
+      throw error;
+    }
+  }
 }

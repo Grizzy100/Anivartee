@@ -3,6 +3,7 @@ import prisma from '../utils/prisma.js';
 import { CreatePostInput } from '../validators/post.schema.js';
 import { logger } from '../utils/logger.js';
 import { DatabaseError, NotFoundError } from '../utils/errors.js';
+import { computeHotScore } from '../utils/hotScore.js';
 
 export class PostRepository {
   async create(data: CreatePostInput, userId: string) {
@@ -134,49 +135,93 @@ export class PostRepository {
 
   async decrementLikes(id: string) {
     try {
-      return await prisma.link.update({
-        where: { id },
-        data: {
-          totalLikes: {
-            decrement: 1
-          }
-        }
-      });
+      // Use raw SQL with GREATEST to prevent negative totalLikes
+      await prisma.$executeRaw`
+        UPDATE "posts"."Link"
+        SET "totalLikes" = GREATEST("totalLikes" - 1, 0),
+            "updatedAt" = NOW()
+        WHERE "id" = ${id}::uuid
+      `;
     } catch (error: any) {
       logger.error('Database error in post.decrementLikes:', error);
       throw new DatabaseError('Failed to decrement likes');
     }
   }
 
-  async getUserPosts(userId: string, page: number, pageSize: number) {
+  async getUserPosts(
+    userId: string,
+    page: number,
+    pageSize: number,
+    status?: string,
+    sortBy?: string
+  ) {
     try {
       const skip = (page - 1) * pageSize;
 
+      // Build WHERE clause
+      const where: Record<string, unknown> = { userId };
+      if (status) {
+        where.status = status;
+      }
+
+      // Build ORDER BY clause
+      let orderBy: Record<string, string> = { createdAt: 'desc' };
+      switch (sortBy) {
+        case 'oldest':
+          orderBy = { createdAt: 'asc' };
+          break;
+        case 'most-liked':
+          orderBy = { totalLikes: 'desc' };
+          break;
+        case 'most-flagged':
+          // Sort by flag count requires a different approach
+          break;
+        case 'newest':
+        default:
+          orderBy = { createdAt: 'desc' };
+      }
+
       const [posts, total] = await Promise.all([
         prisma.link.findMany({
-          where: { userId },
+          where,
           include: {
             sources: true,
+            factChecks: {
+              orderBy: { createdAt: 'desc' as const },
+              take: 1,
+            },
             _count: {
               select: {
                 likes: true,
                 comments: true,
                 views: true,
-                flags: true
+                flags: true,
+                shares: true,
               }
             }
           },
-          orderBy: { createdAt: 'desc' },
+          orderBy,
           skip,
           take: pageSize
         }),
-        prisma.link.count({
-          where: { userId }
-        })
+        prisma.link.count({ where })
       ]);
 
+      // If sorting by most-flagged, sort in-memory (flag count is a computed relation)
+      let sortedPosts = posts;
+      if (sortBy === 'most-flagged') {
+        sortedPosts = [...posts].sort(
+          (a, b) => (b._count?.flags ?? 0) - (a._count?.flags ?? 0)
+        );
+      }
+      if (sortBy === 'most-shared') {
+        sortedPosts = [...posts].sort(
+          (a, b) => (b._count?.shares ?? 0) - (a._count?.shares ?? 0)
+        );
+      }
+
       return {
-        posts,
+        posts: sortedPosts,
         total,
         page,
         pageSize,
@@ -207,6 +252,10 @@ export class PostRepository {
     }
   }
 
+  /**
+   * Returns true if post exists and belongs to userId.
+   * Throws NotFoundError if post doesn't exist.
+   */
   async checkOwnership(postId: string, userId: string): Promise<boolean> {
     try {
       const post = await prisma.link.findUnique({
@@ -214,10 +263,53 @@ export class PostRepository {
         select: { userId: true }
       });
 
-      return post?.userId === userId;
+      if (!post) throw new NotFoundError('Post not found');
+      return post.userId === userId;
     } catch (error: any) {
+      if (error instanceof NotFoundError) throw error;
       logger.error('Database error in post.checkOwnership:', error);
       throw new DatabaseError('Failed to check ownership');
+    }
+  }
+
+  /**
+   * Recalculate and persist the hot score for a post.
+   * Fetches current engagement counts, computes the score, and updates the row.
+   */
+  async recalculateHotScore(postId: string): Promise<void> {
+    try {
+      const post = await prisma.link.findUnique({
+        where: { id: postId },
+        select: {
+          status: true,
+          totalLikes: true,
+          createdAt: true,
+          _count: {
+            select: {
+              comments: true,
+              views: true,
+            },
+          },
+        },
+      });
+
+      if (!post) return;
+
+      const score = computeHotScore({
+        likes: post.totalLikes,
+        comments: post._count.comments,
+        views: post._count.views,
+        status: post.status,
+        createdAt: post.createdAt,
+      });
+
+      await prisma.link.update({
+        where: { id: postId },
+        data: { hotScore: score },
+      });
+    } catch (error: any) {
+      // Hot-score update is non-critical — log but don't throw
+      logger.error('Failed to recalculate hot score:', error);
     }
   }
 }

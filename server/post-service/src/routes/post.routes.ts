@@ -4,6 +4,7 @@ import { PostController } from '../controllers/post.controller.js';
 import { PostService } from '../services/post.service.js';
 import { PostRepository } from '../repositories/post.repository.js';
 import { PointsClient } from '../services/clients/points.client.js';
+import { UserClient } from '../services/clients/user.client.js';
 import { QueueService } from '../services/queue.service.js';
 import { QueueRepository } from '../repositories/queue.repository.js';
 import { ActivityService } from '../services/activity.service.js';
@@ -16,11 +17,12 @@ const router = Router();
 // Initialize dependencies
 const postRepo = new PostRepository();
 const pointsClient = new PointsClient();
+const userClient = new UserClient();
 const queueRepo = new QueueRepository();
 const queueService = new QueueService(queueRepo);
 const activityRepo = new ActivityRepository();
 const activityService = new ActivityService(activityRepo);
-const postService = new PostService(postRepo, pointsClient, queueService, activityService);
+const postService = new PostService(postRepo, pointsClient, queueService, activityService, userClient);
 const postController = new PostController(postService);
 
 // Routes

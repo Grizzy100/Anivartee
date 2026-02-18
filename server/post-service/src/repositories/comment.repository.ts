@@ -2,7 +2,7 @@
 import prisma from '../utils/prisma.js';
 import { CreateCommentInput } from '../validators/comment.schema.js';
 import { logger } from '../utils/logger.js';
-import { DatabaseError } from '../utils/errors.js';
+import { DatabaseError, NotFoundError } from '../utils/errors.js';
 
 export class CommentRepository {
   async create(linkId: string, userId: string, data: CreateCommentInput) {
@@ -127,6 +127,10 @@ export class CommentRepository {
     }
   }
 
+  /**
+   * Returns true if comment exists and belongs to userId.
+   * Throws NotFoundError if comment doesn't exist.
+   */
   async checkOwnership(commentId: string, userId: string): Promise<boolean> {
     try {
       const comment = await prisma.comment.findUnique({
@@ -134,8 +138,10 @@ export class CommentRepository {
         select: { userId: true }
       });
 
-      return comment?.userId === userId;
+      if (!comment) throw new NotFoundError('Comment not found');
+      return comment.userId === userId;
     } catch (error: any) {
+      if (error instanceof NotFoundError) throw error;
       logger.error('Database error in comment.checkOwnership:', error);
       throw new DatabaseError('Failed to check comment ownership');
     }

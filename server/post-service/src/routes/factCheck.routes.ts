@@ -23,6 +23,11 @@ const factCheckService = new FactCheckService(factCheckRepo, postRepo, pointsCli
 const factCheckController = new FactCheckController(factCheckService);
 
 // Routes (only FACT_CHECKERs can create fact-checks)
+router.get('/my-fact-checks',
+  authenticate,
+  requireRole(['FACT_CHECKER', 'ADMIN']),
+  asyncHandler((req, res) => factCheckController.getMyFactChecks(req, res))
+);
 router.post('/posts/:linkId/fact-checks', 
   authenticate, 
   requireRole(['FACT_CHECKER', 'ADMIN']),

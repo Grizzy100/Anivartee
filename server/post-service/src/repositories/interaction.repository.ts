@@ -1,17 +1,19 @@
 //server\post-service\src\repositories\interaction.repository.ts
 import prisma from '../utils/prisma.js';
 import { logger } from '../utils/logger.js';
-import { DatabaseError } from '../utils/errors.js';
+import { DatabaseError, ConflictError } from '../utils/errors.js';
+import type { SharePlatform } from '../generated/prisma/index.js';
 
 export class InteractionRepository {
   // ============= POST LIKES =============
+
+  /** Idempotent upsert — safe against concurrent double-like. */
   async createLike(linkId: string, userId: string) {
     try {
-      return await prisma.linkLike.create({
-        data: {
-          linkId,
-          userId
-        }
+      return await prisma.linkLike.upsert({
+        where: { userId_linkId: { userId, linkId } },
+        update: {},
+        create: { linkId, userId },
       });
     } catch (error: any) {
       logger.error('Database error in interaction.createLike:', error);
@@ -22,10 +24,7 @@ export class InteractionRepository {
   async deleteLike(linkId: string, userId: string) {
     try {
       return await prisma.linkLike.deleteMany({
-        where: {
-          linkId,
-          userId
-        }
+        where: { linkId, userId },
       });
     } catch (error: any) {
       logger.error('Database error in interaction.deleteLike:', error);
@@ -35,11 +34,8 @@ export class InteractionRepository {
 
   async findLike(linkId: string, userId: string) {
     try {
-      return await prisma.linkLike.findFirst({
-        where: {
-          linkId,
-          userId
-        }
+      return await prisma.linkLike.findUnique({
+        where: { userId_linkId: { userId, linkId } },
       });
     } catch (error: any) {
       logger.error('Database error in interaction.findLike:', error);
@@ -81,13 +77,14 @@ export class InteractionRepository {
   }
 
   // ============= COMMENT LIKES =============
+
+  /** Idempotent upsert — safe against concurrent double-like. */
   async createCommentLike(commentId: string, userId: string) {
     try {
-      return await prisma.commentLike.create({
-        data: {
-          commentId,
-          userId
-        }
+      return await prisma.commentLike.upsert({
+        where: { userId_commentId: { userId, commentId } },
+        update: {},
+        create: { commentId, userId },
       });
     } catch (error: any) {
       logger.error('Database error in interaction.createCommentLike:', error);
@@ -98,10 +95,7 @@ export class InteractionRepository {
   async deleteCommentLike(commentId: string, userId: string) {
     try {
       return await prisma.commentLike.deleteMany({
-        where: {
-          commentId,
-          userId
-        }
+        where: { commentId, userId },
       });
     } catch (error: any) {
       logger.error('Database error in interaction.deleteCommentLike:', error);
@@ -111,11 +105,8 @@ export class InteractionRepository {
 
   async findCommentLike(commentId: string, userId: string) {
     try {
-      return await prisma.commentLike.findFirst({
-        where: {
-          commentId,
-          userId
-        }
+      return await prisma.commentLike.findUnique({
+        where: { userId_commentId: { userId, commentId } },
       });
     } catch (error: any) {
       logger.error('Database error in interaction.findCommentLike:', error);
@@ -126,11 +117,11 @@ export class InteractionRepository {
   // ============= SAVES =============
   async createSave(linkId: string, userId: string) {
     try {
-      return await prisma.$executeRaw`
-        INSERT INTO posts.link_saves (link_id, user_id)
-        VALUES (${linkId}::uuid, ${userId}::uuid)
-        ON CONFLICT DO NOTHING
-      `;
+      return await prisma.linkSave.upsert({
+        where: { userId_linkId: { userId, linkId } },
+        update: {},
+        create: { linkId, userId },
+      });
     } catch (error: any) {
       logger.error('Database error in interaction.createSave:', error);
       throw new DatabaseError('Failed to save post');
@@ -139,10 +130,9 @@ export class InteractionRepository {
 
   async deleteSave(linkId: string, userId: string) {
     try {
-      return await prisma.$executeRaw`
-        DELETE FROM posts.link_saves
-        WHERE link_id = ${linkId}::uuid AND user_id = ${userId}::uuid
-      `;
+      return await prisma.linkSave.deleteMany({
+        where: { linkId, userId },
+      });
     } catch (error: any) {
       logger.error('Database error in interaction.deleteSave:', error);
       throw new DatabaseError('Failed to unsave post');
@@ -151,13 +141,10 @@ export class InteractionRepository {
 
   async findSave(linkId: string, userId: string): Promise<boolean> {
     try {
-      const result = await prisma.$queryRaw<{ exists: boolean }[]>`
-        SELECT EXISTS(
-          SELECT 1 FROM posts.link_saves
-          WHERE link_id = ${linkId}::uuid AND user_id = ${userId}::uuid
-        )
-      `;
-      return result[0]?.exists || false;
+      const save = await prisma.linkSave.findUnique({
+        where: { userId_linkId: { userId, linkId } },
+      });
+      return !!save;
     } catch (error: any) {
       logger.error('Database error in interaction.findSave:', error);
       throw new DatabaseError('Failed to check save status');
@@ -168,23 +155,33 @@ export class InteractionRepository {
     try {
       const skip = (page - 1) * pageSize;
 
-      const saved = await prisma.$queryRaw<any[]>`
-        SELECT l.*, COUNT(*) OVER() as total
-        FROM posts.links l
-        INNER JOIN posts.link_saves ls ON l.id = ls.link_id
-        WHERE ls.user_id = ${userId}::uuid
-        ORDER BY ls.created_at DESC
-        LIMIT ${pageSize} OFFSET ${skip}
-      `;
-
-      const total = saved[0]?.total || 0;
+      const [saves, total] = await Promise.all([
+        prisma.linkSave.findMany({
+          where: { userId },
+          include: {
+            link: {
+              include: {
+                sources: true,
+                factChecks: { orderBy: { createdAt: 'desc' }, take: 1 },
+                _count: {
+                  select: { likes: true, comments: true, views: true, flags: true },
+                },
+              },
+            },
+          },
+          orderBy: { createdAt: 'desc' },
+          skip,
+          take: pageSize,
+        }),
+        prisma.linkSave.count({ where: { userId } }),
+      ]);
 
       return {
-        posts: saved,
+        posts: saves.map(s => s.link),
         total,
         page,
         pageSize,
-        totalPages: Math.ceil(total / pageSize)
+        totalPages: Math.ceil(total / pageSize),
       };
     } catch (error: any) {
       logger.error('Database error in interaction.getSavedPostsByUser:', error);
@@ -242,14 +239,10 @@ export class InteractionRepository {
   }
 
   // ============= SHARES =============
-  async createShare(linkId: string, userId: string, platform?: string) {
+  async createShare(linkId: string, userId: string, platform?: SharePlatform) {
     try {
       return await prisma.linkShare.create({
-        data: {
-          linkId,
-          userId,
-          platform: platform as any
-        }
+        data: { linkId, userId, platform },
       });
     } catch (error: any) {
       logger.error('Database error in interaction.createShare:', error);

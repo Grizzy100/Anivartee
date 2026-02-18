@@ -56,6 +56,10 @@ export class VerdictService {
     const newStatus = data.verdict === 'VALIDATED' ? 'VALIDATED' : 'DEBUNKED';
     await this.postRepo.updateStatus(postId, newStatus);
 
+    // 5b. Recalculate hot score after status change (async, don't wait)
+    this.postRepo.recalculateHotScore(postId)
+      .catch(err => logger.error('Failed to recalculate hot score:', err));
+
     // 6. Complete the claim and queue item
     await this.claimService.completeClaim(postId, factCheckerId);
     await this.queueService.markCompleted(postId);

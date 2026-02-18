@@ -1,87 +1,43 @@
 //server\post-service\src\services\feed.service.ts
-// src/services/feed.service.ts
 import { FeedRepository } from '../repositories/feed.repository.js';
 import { UserClient } from './clients/user.client.js';
-import { logger } from '../utils/logger.js';
+import { PointsClient } from './clients/points.client.js';
+import {
+  attachInteractionFlags,
+  enrichPostsWithUserData,
+} from '../utils/enrichment.js';
 
 export class FeedService {
   constructor(
     private feedRepo: FeedRepository,
-    private userClient: UserClient
+    private userClient: UserClient,
+    private pointsClient: PointsClient,
   ) {}
 
+  /** Home feed — VALIDATED + PENDING, ordered by hotScore. */
   async getHomeFeed(userId: string | null, page: number, pageSize: number) {
-    try {
-      const result = await this.feedRepo.getHomeFeed(userId, page, pageSize);
-
-      // Enrich posts with user data
-      const enrichedPosts = await this.enrichPostsWithUserData(result.posts);
-
-      return {
-        ...result,
-        posts: enrichedPosts
-      };
-    } catch (error: any) {
-      logger.error('Error in getHomeFeed service:', error);
-      throw error;
-    }
+    const result = await this.feedRepo.getHomeFeed(userId, page, pageSize);
+    const posts = attachInteractionFlags(result.posts);
+    const enriched = await enrichPostsWithUserData(posts, this.userClient, this.pointsClient);
+    return { ...result, posts: enriched };
   }
 
-  async getTrendingFeed(page: number, pageSize: number) {
-    try {
-      const result = await this.feedRepo.getTrendingFeed(page, pageSize);
-
-      // Enrich posts with user data
-      const enrichedPosts = await this.enrichPostsWithUserData(result.posts);
-
-      return {
-        ...result,
-        posts: enrichedPosts
-      };
-    } catch (error: any) {
-      logger.error('Error in getTrendingFeed service:', error);
-      throw error;
-    }
+  /** Trending feed — VALIDATED, 7-day window, hotScore desc. */
+  async getTrendingFeed(userId: string | null, page: number, pageSize: number) {
+    const result = await this.feedRepo.getTrendingFeed(userId, page, pageSize);
+    const posts = attachInteractionFlags(result.posts);
+    const enriched = await enrichPostsWithUserData(posts, this.userClient, this.pointsClient);
+    return { ...result, posts: enriched };
   }
 
+  /**
+   * Controversial feed — raw SQL, no per-user interaction flags.
+   * TODO: thread userId through for liked/saved support once the
+   * raw query is refactored to a Prisma query.
+   */
   async getControversialFeed(page: number, pageSize: number) {
-    try {
-      const result = await this.feedRepo.getControversialFeed(page, pageSize);
-
-      // Enrich posts with user data
-      const enrichedPosts = await this.enrichPostsWithUserData(result.posts);
-
-      return {
-        ...result,
-        posts: enrichedPosts
-      };
-    } catch (error: any) {
-      logger.error('Error in getControversialFeed service:', error);
-      throw error;
-    }
-  }
-
-  private async enrichPostsWithUserData(posts: any[]) {
-    try {
-      // Extract unique user IDs
-      const userIds = [...new Set(posts.map(post => post.userId))];
-
-      // Fetch user data in batch
-      const userMap = await this.userClient.getUsersByIds(userIds);
-
-      // Enrich posts with user data
-      return posts.map(post => ({
-        ...post,
-        author: userMap.get(post.userId) || {
-          id: post.userId,
-          username: 'Unknown User',
-          role: 'USER'
-        }
-      }));
-    } catch (error: any) {
-      logger.error('Error enriching posts with user data:', error);
-      // Return posts without enrichment if user service fails
-      return posts;
-    }
+    const result = await this.feedRepo.getControversialFeed(page, pageSize);
+    const enriched = await enrichPostsWithUserData(result.posts, this.userClient, this.pointsClient);
+    return { ...result, posts: enriched };
   }
 }

@@ -31,10 +31,10 @@ const prisma = new PrismaClient({
   log:
     process.env.NODE_ENV === 'development'
       ? [
-          { emit: 'event', level: 'query' },
-          { emit: 'event', level: 'error' },
-          { emit: 'event', level: 'warn' },
-        ]
+        { emit: 'event', level: 'query' },
+        { emit: 'event', level: 'error' },
+        { emit: 'event', level: 'warn' },
+      ]
       : [{ emit: 'event', level: 'error' }],
 });
 
@@ -108,10 +108,9 @@ connectWithRetry().catch((error) => {
   process.exit(1);
 });
 
-// Handle graceful shutdown
-process.on('beforeExit', async () => {
-  await disconnect();
-});
+// Handle graceful shutdown — SIGINT/SIGTERM only
+// NOTE: beforeExit is intentionally omitted. With NeonDB it fires after every request
+// (event loop drains between queries), causing disconnect() to spam the logs.
 
 process.on('SIGINT', async () => {
   await disconnect();

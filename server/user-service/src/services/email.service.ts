@@ -1,252 +1,14 @@
-//server\user-service\src\services\email.service.ts
-// import { Resend } from 'resend';
-// import { env } from '../config/env.js';
-// import { logger } from '../utils/logger.js';
-
-// const resend = new Resend(env.RESEND_API_KEY);
-
-// interface EmailPayload {
-//   to: string;
-//   subject: string;
-//   html: string;
-// }
-
-// export class EmailService {
-//   async sendWelcomeEmail(email: string, username: string, role: string): Promise<void> {
-//     try {
-//       const roleText = role === 'FACT_CHECKER' ? 'Fact Checker' : 'User';
-//       const html = this.welcomeTemplate(username, roleText);
-      
-//       await resend.emails.send({
-//         from: 'Anivartee <onboarding@resend.dev>',
-//         to: email,
-//         subject: `Welcome to Anivartee, ${username}!`,
-//         html
-//       });
-      
-//       logger.info(`Welcome email sent to ${email}`);
-//     } catch (error) {
-//       logger.error('Failed to send welcome email:', error);
-//       // Don't throw - email failure shouldn't block signup
-//     }
-//   }
-
-//   async sendPasswordResetEmail(email: string, resetToken: string, username: string): Promise<void> {
-//     try {
-//       const resetUrl = `${env.FRONTEND_URL}/reset-password?token=${resetToken}`;
-//       const html = this.passwordResetTemplate(username, resetUrl);
-      
-//       await resend.emails.send({
-//         from: 'Anivartee <onboarding@resend.dev>',
-//         to: email,
-//         subject: 'Reset Your Anivartee Password',
-//         html
-//       });
-      
-//       logger.info(`Password reset email sent to ${email}`);
-//     } catch (error) {
-//       logger.error('Failed to send password reset email:', error);
-//     }
-//   }
-
-//   async sendPasswordResetConfirmationEmail(email: string, username: string): Promise<void> {
-//     try {
-//       const html = this.passwordResetConfirmationTemplate(username);
-      
-//       await resend.emails.send({
-//         from: 'Anivartee <onboarding@resend.dev>',
-//         to: email,
-//         subject: 'Password Reset Successfully',
-//         html
-//       });
-      
-//       logger.info(`Password reset confirmation email sent to ${email}`);
-//     } catch (error) {
-//       logger.error('Failed to send password reset confirmation email:', error);
-//     }
-//   }
-
-//   async sendEmailVerificationEmail(email: string, verificationToken: string, username: string): Promise<void> {
-//     try {
-//       const verifyUrl = `${env.FRONTEND_URL}/verify-email?token=${verificationToken}`;
-//       const html = this.emailVerificationTemplate(username, verifyUrl);
-      
-//       await resend.emails.send({
-//         from: 'Anivartee <onboarding@resend.dev>',
-//         to: email,
-//         subject: 'Verify Your Anivartee Email',
-//         html
-//       });
-      
-//       logger.info(`Verification email sent to ${email}`);
-//     } catch (error) {
-//       logger.error('Failed to send verification email:', error);
-//     }
-//   }
-
-//   // Email templates
-//   private welcomeTemplate(username: string, role: string): string {
-//     return `
-//       <!DOCTYPE html>
-//       <html>
-//         <head>
-//           <style>
-//             body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
-//             .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-//             .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 20px; text-align: center; border-radius: 5px; }
-//             .content { padding: 20px; border: 1px solid #ddd; border-radius: 5px; margin-top: 20px; }
-//             .footer { margin-top: 20px; text-align: center; font-size: 12px; color: #666; }
-//             .button { background: #667eea; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; display: inline-block; margin-top: 10px; }
-//           </style>
-//         </head>
-//         <body>
-//           <div class="container">
-//             <div class="header">
-//               <h1>Welcome to Anivartee! 🎉</h1>
-//             </div>
-//             <div class="content">
-//               <p>Hi ${username},</p>
-//               <p>You have successfully signed up for Anivartee as a <strong>${role}</strong>!</p>
-//               <p>We're excited to have you on board. You can now:</p>
-//               <ul>
-//                 <li>Share and discover fact-checked content</li>
-//                 <li>Build your reputation with accurate information</li>
-//                 <li>Connect with other fact-checkers and users</li>
-//               </ul>
-//               <p>If you have any questions, feel free to reach out to our support team.</p>
-//               <p>Happy fact-checking!</p>
-//               <p><strong>The Anivartee Team</strong></p>
-//             </div>
-//             <div class="footer">
-//               <p>&copy; 2026 Anivartee. All rights reserved.</p>
-//               <p>This is an automated email. Please do not reply directly.</p>
-//             </div>
-//           </div>
-//         </body>
-//       </html>
-//     `;
-//   }
-
-//   private passwordResetTemplate(username: string, resetUrl: string): string {
-//     return `
-//       <!DOCTYPE html>
-//       <html>
-//         <head>
-//           <style>
-//             body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
-//             .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-//             .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 20px; text-align: center; border-radius: 5px; }
-//             .content { padding: 20px; border: 1px solid #ddd; border-radius: 5px; margin-top: 20px; }
-//             .footer { margin-top: 20px; text-align: center; font-size: 12px; color: #666; }
-//             .button { background: #667eea; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; display: inline-block; margin-top: 15px; }
-//             .warning { background: #fff3cd; padding: 10px; border-left: 4px solid #ffc107; margin-top: 10px; }
-//           </style>
-//         </head>
-//         <body>
-//           <div class="container">
-//             <div class="header">
-//               <h1>Reset Your Password</h1>
-//             </div>
-//             <div class="content">
-//               <p>Hi ${username},</p>
-//               <p>We received a request to reset your Anivartee password. Click the button below to set a new password:</p>
-//               <a href="${resetUrl}" class="button">Reset Password</a>
-//               <p>Or copy and paste this link in your browser:</p>
-//               <p style="word-break: break-all; background: #f5f5f5; padding: 10px; border-radius: 3px;">${resetUrl}</p>
-//               <div class="warning">
-//                 <strong>⚠️ Security Notice:</strong> This link expires in 1 hour. If you didn't request this, you can safely ignore this email.
-//               </div>
-//             </div>
-//             <div class="footer">
-//               <p>&copy; 2026 Anivartee. All rights reserved.</p>
-//             </div>
-//           </div>
-//         </body>
-//       </html>
-//     `;
-//   }
-
-//   private passwordResetConfirmationTemplate(username: string): string {
-//     return `
-//       <!DOCTYPE html>
-//       <html>
-//         <head>
-//           <style>
-//             body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
-//             .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-//             .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 20px; text-align: center; border-radius: 5px; }
-//             .content { padding: 20px; border: 1px solid #ddd; border-radius: 5px; margin-top: 20px; }
-//             .footer { margin-top: 20px; text-align: center; font-size: 12px; color: #666; }
-//             .success { background: #d4edda; padding: 10px; border-left: 4px solid #28a745; margin-top: 10px; }
-//           </style>
-//         </head>
-//         <body>
-//           <div class="container">
-//             <div class="header">
-//               <h1>Password Reset Successful ✓</h1>
-//             </div>
-//             <div class="content">
-//               <p>Hi ${username},</p>
-//               <p>Your password has been successfully reset.</p>
-//               <div class="success">
-//                 <strong>✓ Success:</strong> You can now log in with your new password.
-//               </div>
-//               <p>If you did not make this change or have any concerns about your account security, please contact our support team immediately.</p>
-//               <p><strong>The Anivartee Team</strong></p>
-//             </div>
-//             <div class="footer">
-//               <p>&copy; 2026 Anivartee. All rights reserved.</p>
-//             </div>
-//           </div>
-//         </body>
-//       </html>
-//     `;
-//   }
-
-//   private emailVerificationTemplate(username: string, verifyUrl: string): string {
-//     return `
-//       <!DOCTYPE html>
-//       <html>
-//         <head>
-//           <style>
-//             body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
-//             .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-//             .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 20px; text-align: center; border-radius: 5px; }
-//             .content { padding: 20px; border: 1px solid #ddd; border-radius: 5px; margin-top: 20px; }
-//             .footer { margin-top: 20px; text-align: center; font-size: 12px; color: #666; }
-//             .button { background: #667eea; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; display: inline-block; margin-top: 15px; }
-//           </style>
-//         </head>
-//         <body>
-//           <div class="container">
-//             <div class="header">
-//               <h1>Verify Your Email Address</h1>
-//             </div>
-//             <div class="content">
-//               <p>Hi ${username},</p>
-//               <p>Thank you for signing up! Please verify your email address by clicking the button below:</p>
-//               <a href="${verifyUrl}" class="button">Verify Email</a>
-//               <p>Or copy and paste this link:</p>
-//               <p style="word-break: break-all; background: #f5f5f5; padding: 10px; border-radius: 3px;">${verifyUrl}</p>
-//               <p>This link expires in 24 hours.</p>
-//             </div>
-//             <div class="footer">
-//               <p>&copy; 2026 Anivartee. All rights reserved.</p>
-//             </div>
-//           </div>
-//         </body>
-//       </html>
-//     `;
-//   }
-// }
-
-
-
-
-//server\user-service\src\services\email.service.ts
+// server/user-service/src/services/email.service.ts
+console.log("LOADED FILE:", import.meta.url);
 import nodemailer from 'nodemailer';
 import { env } from '../config/env.js';
 import { logger } from '../utils/logger.js';
+
+console.log("EMAIL TEMPLATE VERSION: v2.0 MODERN");
+
+const LOGO_URL =
+  `${env.FRONTEND_URL}/logo.png` ||
+  "https://dummyimage.com/88x88/020617/ffffff.png&text=A";
 
 const transporter = nodemailer.createTransport({
   host: env.SMTP_HOST,
@@ -255,222 +17,331 @@ const transporter = nodemailer.createTransport({
   auth: {
     user: env.SMTP_USER,
     pass: env.SMTP_PASS,
+  },
+});
+
+transporter.verify((error) => {
+  if (error) {
+    console.error("[EmailService] SMTP FAILED:", error);
+  } else {
+    console.log("[EmailService] SMTP READY");
   }
 });
 
 export class EmailService {
-  async sendWelcomeEmail(email: string, username: string, role: string): Promise<void> {
-    try {
-      const roleText = role === 'FACT_CHECKER' ? 'Fact Checker' : 'User';
-      await transporter.sendMail({
-        from: 'Anivartee <anivartee09@gmail.com>',
-        to: email,
-        subject: `Welcome to Anivartee, ${username}!`,
-        html: this.welcomeTemplate(username, roleText)
-      });
-      logger.info(`Welcome email sent to ${email}`);
-    } catch (error) {
-      logger.error('Failed to send welcome email:', error);
-      // Don't throw - email failure shouldn't block signup
-    }
+
+  // =================================================
+  // PUBLIC EMAIL METHODS
+  // =================================================
+
+  async sendWelcomeEmail(email: string, username: string, role: string) {
+
+    const roleText =
+      role === "FACT_CHECKER" ? "Fact Checker" : "User";
+
+    await transporter.sendMail({
+      from: `"Anivartee" <${env.SMTP_USER}>`,
+      to: email,
+      subject: "Welcome to Anivartee",
+      html: this.baseTemplate(
+        "Welcome to Anivartee",
+        `
+        <p>Hi ${username},</p>
+
+        <p>
+        Your account has been successfully created as
+        <strong>${roleText}</strong>.
+        </p>
+
+        <p>
+        You can now participate in verification workflows
+        and build your reputation.
+        </p>
+        `
+      ),
+    });
+
+    logger.info(`Welcome email sent to ${email}`);
   }
 
-  async sendPasswordResetEmail(email: string, resetToken: string, username: string): Promise<void> {
-    try {
-      const resetUrl = `${env.FRONTEND_URL}/reset-password?token=${resetToken}`;
-      await transporter.sendMail({
-        from: 'Anivartee <anivartee09@gmail.com>',
-        to: email,
-        subject: 'Reset Your Anivartee Password',
-        html: this.passwordResetTemplate(username, resetUrl)
-      });
-      logger.info(`Password reset email sent to ${email}`);
-    } catch (error) {
-      logger.error('Failed to send password reset email:', error);
-    }
+  async sendPasswordResetEmail(
+    email: string,
+    token: string,
+    username: string
+  ) {
+
+    const url =
+      `${env.FRONTEND_URL}/reset-password?token=${token}`;
+
+    await transporter.sendMail({
+      from: `"Anivartee Security" <${env.SMTP_USER}>`,
+      to: email,
+      subject: "Reset your password",
+      html: this.baseTemplate(
+        "Reset your password",
+        `
+        <p>Hi ${username},</p>
+
+        <p>We received a password reset request.</p>
+
+        ${this.button(url, "Reset password")}
+
+        ${this.linkFallback(url)}
+
+        ${this.warning(
+          "This link expires in 1 hour."
+        )}
+        `
+      ),
+    });
+
+    logger.info(`Password reset email sent to ${email}`);
   }
 
-  async sendPasswordResetConfirmationEmail(email: string, username: string): Promise<void> {
-    try {
-      await transporter.sendMail({
-        from: 'Anivartee <anivartee09@gmail.com>',
-        to: email,
-        subject: 'Password Reset Successfully',
-        html: this.passwordResetConfirmationTemplate(username)
-      });
-      logger.info(`Password reset confirmation email sent to ${email}`);
-    } catch (error) {
-      logger.error('Failed to send password reset confirmation email:', error);
-    }
+  async sendPasswordResetConfirmationEmail(
+    email: string,
+    username: string
+  ) {
+
+    await transporter.sendMail({
+      from: `"Anivartee Security" <${env.SMTP_USER}>`,
+      to: email,
+      subject: "Password updated",
+      html: this.baseTemplate(
+        "Password updated",
+        `
+        <p>Hi ${username},</p>
+
+        ${this.success(
+          "Your password was successfully changed."
+        )}
+
+        <p>
+        If you did not perform this action,
+        contact support immediately.
+        </p>
+        `
+      ),
+    });
+
+    logger.info(`Password reset confirmation sent to ${email}`);
   }
 
-  async sendEmailVerificationEmail(email: string, verificationToken: string, username: string): Promise<void> {
-    try {
-      const verifyUrl = `${env.FRONTEND_URL}/verify-email?token=${verificationToken}`;
-      await transporter.sendMail({
-        from: 'Anivartee <anivartee09@gmail.com>',
-        to: email,
-        subject: 'Verify Your Anivartee Email',
-        html: this.emailVerificationTemplate(username, verifyUrl)
-      });
-      logger.info(`Verification email sent to ${email}`);
-    } catch (error) {
-      logger.error('Failed to send verification email:', error);
-    }
+  async sendEmailVerificationEmail(
+    email: string,
+    token: string,
+    username: string
+  ) {
+
+    const url =
+      `${env.FRONTEND_URL}/verify-email?token=${token}`;
+
+    await transporter.sendMail({
+      from: `"Anivartee Security" <${env.SMTP_USER}>`,
+      to: email,
+      subject: "Verify your email",
+      html: this.baseTemplate(
+        "Verify your email",
+        `
+        <p>Hi ${username},</p>
+
+        <p>Please verify your email address.</p>
+
+        ${this.button(url, "Verify email")}
+
+        ${this.linkFallback(url)}
+        `
+      ),
+    });
+
+    logger.info(`Verification email sent to ${email}`);
   }
 
-  // Email templates
-  private welcomeTemplate(username: string, role: string): string {
+  // =================================================
+  // BASE TEMPLATE
+  // =================================================
+
+  private baseTemplate(
+    title: string,
+    content: string
+  ): string {
+
     return `
-      <!DOCTYPE html>
-      <html>
-        <head>
-          <style>
-            body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
-            .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-            .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 20px; text-align: center; border-radius: 5px; }
-            .content { padding: 20px; border: 1px solid #ddd; border-radius: 5px; margin-top: 20px; }
-            .footer { margin-top: 20px; text-align: center; font-size: 12px; color: #666; }
-            .button { background: #667eea; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; display: inline-block; margin-top: 10px; }
-          </style>
-        </head>
-        <body>
-          <div class="container">
-            <div class="header">
-              <h1>Welcome to Anivartee! 🎉</h1>
-            </div>
-            <div class="content">
-              <p>Hi ${username},</p>
-              <p>You have successfully signed up for Anivartee as a <strong>${role}</strong>!</p>
-              <p>We're excited to have you on board. You can now:</p>
-              <ul>
-                <li>Share and discover fact-checked content</li>
-                <li>Build your reputation with accurate information</li>
-                <li>Connect with other fact-checkers and users</li>
-              </ul>
-              <p>If you have any questions, feel free to reach out to our support team.</p>
-              <p>Happy fact-checking!</p>
-              <p><strong>The Anivartee Team</strong></p>
-            </div>
-            <div class="footer">
-              <p>&copy; 2026 Anivartee. All rights reserved.</p>
-              <p>This is an automated email. Please do not reply directly.</p>
-            </div>
-          </div>
-        </body>
-      </html>
-    `;
+<!DOCTYPE html>
+<html>
+<body style="margin:0;background:#f8fafc;">
+
+<table width="100%" cellpadding="0" cellspacing="0"
+style="padding:40px 16px;font-family:Arial,Helvetica,sans-serif;">
+
+<tr>
+<td align="center">
+
+<table width="560"
+style="background:#ffffff;border-radius:12px;
+border:1px solid #e2e8f0;padding:32px;">
+
+${this.logo()}
+
+<tr>
+<td align="center"
+style="font-size:20px;font-weight:600;padding-bottom:16px;">
+${title}
+</td>
+</tr>
+
+<tr>
+<td style="font-size:14px;color:#334155;">
+${content}
+</td>
+</tr>
+
+${this.footer()}
+
+</table>
+
+</td>
+</tr>
+</table>
+
+</body>
+</html>
+`;
   }
 
-  private passwordResetTemplate(username: string, resetUrl: string): string {
+  // =================================================
+  // COMPONENTS
+  // =================================================
+
+  private logo(): string {
+
     return `
-      <!DOCTYPE html>
-      <html>
-        <head>
-          <style>
-            body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
-            .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-            .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 20px; text-align: center; border-radius: 5px; }
-            .content { padding: 20px; border: 1px solid #ddd; border-radius: 5px; margin-top: 20px; }
-            .footer { margin-top: 20px; text-align: center; font-size: 12px; color: #666; }
-            .button { background: #667eea; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; display: inline-block; margin-top: 15px; }
-            .warning { background: #fff3cd; padding: 10px; border-left: 4px solid #ffc107; margin-top: 10px; }
-          </style>
-        </head>
-        <body>
-          <div class="container">
-            <div class="header">
-              <h1>Reset Your Password</h1>
-            </div>
-            <div class="content">
-              <p>Hi ${username},</p>
-              <p>We received a request to reset your Anivartee password. Click the button below to set a new password:</p>
-              <a href="${resetUrl}" class="button">Reset Password</a>
-              <p>Or copy and paste this link in your browser:</p>
-              <p style="word-break: break-all; background: #f5f5f5; padding: 10px; border-radius: 3px;">${resetUrl}</p>
-              <div class="warning">
-                <strong>⚠️ Security Notice:</strong> This link expires in 1 hour. If you didn't request this, you can safely ignore this email.
-              </div>
-            </div>
-            <div class="footer">
-              <p>&copy; 2026 Anivartee. All rights reserved.</p>
-            </div>
-          </div>
-        </body>
-      </html>
-    `;
+<tr>
+<td align="center" style="padding-bottom:24px;">
+<img src="${LOGO_URL}"
+width="44"
+height="44"
+style="display:block;border-radius:8px;"/>
+</td>
+</tr>
+`;
   }
 
-  private passwordResetConfirmationTemplate(username: string): string {
+  private footer(): string {
+
     return `
-      <!DOCTYPE html>
-      <html>
-        <head>
-          <style>
-            body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
-            .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-            .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 20px; text-align: center; border-radius: 5px; }
-            .content { padding: 20px; border: 1px solid #ddd; border-radius: 5px; margin-top: 20px; }
-            .footer { margin-top: 20px; text-align: center; font-size: 12px; color: #666; }
-            .success { background: #d4edda; padding: 10px; border-left: 4px solid #28a745; margin-top: 10px; }
-          </style>
-        </head>
-        <body>
-          <div class="container">
-            <div class="header">
-              <h1>Password Reset Successful ✓</h1>
-            </div>
-            <div class="content">
-              <p>Hi ${username},</p>
-              <p>Your password has been successfully reset.</p>
-              <div class="success">
-                <strong>✓ Success:</strong> You can now log in with your new password.
-              </div>
-              <p>If you did not make this change or have any concerns about your account security, please contact our support team immediately.</p>
-              <p><strong>The Anivartee Team</strong></p>
-            </div>
-            <div class="footer">
-              <p>&copy; 2026 Anivartee. All rights reserved.</p>
-            </div>
-          </div>
-        </body>
-      </html>
-    `;
+<tr>
+<td align="center"
+style="padding-top:24px;
+font-size:12px;color:#64748b;">
+
+© ${new Date().getFullYear()} Anivartee
+
+<br/>
+
+Secure fact-checking infrastructure
+
+</td>
+</tr>
+`;
   }
 
-  private emailVerificationTemplate(username: string, verifyUrl: string): string {
+  private button(url: string, text: string): string {
+
     return `
-      <!DOCTYPE html>
-      <html>
-        <head>
-          <style>
-            body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
-            .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-            .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 20px; text-align: center; border-radius: 5px; }
-            .content { padding: 20px; border: 1px solid #ddd; border-radius: 5px; margin-top: 20px; }
-            .footer { margin-top: 20px; text-align: center; font-size: 12px; color: #666; }
-            .button { background: #667eea; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; display: inline-block; margin-top: 15px; }
-          </style>
-        </head>
-        <body>
-          <div class="container">
-            <div class="header">
-              <h1>Verify Your Email Address</h1>
-            </div>
-            <div class="content">
-              <p>Hi ${username},</p>
-              <p>Thank you for signing up! Please verify your email address by clicking the button below:</p>
-              <a href="${verifyUrl}" class="button">Verify Email</a>
-              <p>Or copy and paste this link:</p>
-              <p style="word-break: break-all; background: #f5f5f5; padding: 10px; border-radius: 3px;">${verifyUrl}</p>
-              <p>This link expires in 24 hours.</p>
-            </div>
-            <div class="footer">
-              <p>&copy; 2026 Anivartee. All rights reserved.</p>
-            </div>
-          </div>
-        </body>
-      </html>
-    `;
+<tr>
+<td align="center" style="padding:24px 0;">
+
+<a href="${url}"
+style="
+background:#020617;
+color:#ffffff;
+padding:12px 24px;
+border-radius:8px;
+text-decoration:none;
+font-size:14px;
+display:inline-block;
+">
+
+${text}
+
+</a>
+
+</td>
+</tr>
+`;
   }
+
+  private linkFallback(url: string): string {
+
+    return `
+<tr>
+<td>
+
+<div style="
+background:#f1f5f9;
+padding:12px;
+border-radius:8px;
+font-size:12px;
+word-break:break-all;
+margin-top:8px;
+">
+
+${url}
+
+</div>
+
+</td>
+</tr>
+`;
+  }
+
+  private warning(text: string): string {
+
+    return `
+<tr>
+<td>
+
+<div style="
+background:#fefce8;
+border:1px solid #fde68a;
+padding:12px;
+border-radius:8px;
+margin-top:16px;
+font-size:13px;
+">
+
+${text}
+
+</div>
+
+</td>
+</tr>
+`;
+  }
+
+  private success(text: string): string {
+
+    return `
+<tr>
+<td>
+
+<div style="
+background:#ecfdf5;
+border:1px solid #6ee7b7;
+padding:12px;
+border-radius:8px;
+margin-top:16px;
+font-size:13px;
+">
+
+${text}
+
+</div>
+
+</td>
+</tr>
+`;
+  }
+
 }

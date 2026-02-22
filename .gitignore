@@ -46,3 +46,13 @@ generated/
 # ===============================
 docker-data/
 lovable
+
+# ===============================
+# Ignore specific services temporarily
+# ===============================
+server/social-service/
+
+# ===============================
+# Ignore documentation temporarily
+# ===============================
+services-documentation.md

@@ -2,6 +2,9 @@ import passport from 'passport';
 import { Strategy as GoogleStrategy } from 'passport-google-oauth20';
 import { env } from './env.js';
 import prisma from '../utils/prisma.js'; // ✅ FIX: Use the configured prisma instance
+import { EmailService } from '../services/email.service.js';
+
+const emailService = new EmailService();
 
 passport.use(
   new GoogleStrategy(
@@ -12,7 +15,7 @@ passport.use(
     },
     async (accessToken: any, refreshToken: any, profile, done) => {
       try {
-        const email = profile.emails?.[0]?.value;
+        const email = profile.emails?.[0]?.value?.toLowerCase();
         const name = profile.displayName;
         const picture = profile.photos?.[0]?.value;
         const googleId = profile.id;
@@ -54,6 +57,11 @@ passport.use(
             },
             include: { oauthAccounts: true }
           });
+
+          // Send welcome email asynchronously
+          emailService.sendWelcomeEmail(user.email, user.username, user.role)
+            .catch(err => console.error('Failed to send Google OAuth welcome email', err));
+
         } else {
           // Link OAuth account if not already linked
           const existingOAuth = await prisma.oAuthAccount.findUnique({

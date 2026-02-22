@@ -71,7 +71,9 @@ export class PostController {
     try {
       const id = getParam(req.params.id); // ✅ FIXED
       const userId = req.user!.userId;
-      
+
+      logger.info('DELETE request received', { id, userId }); // 🔍 DEBUG
+
       await this.postService.deletePost(id, userId);
       
       return ResponseUtil.noContent(res);
@@ -100,6 +102,17 @@ export class PostController {
       );
     } catch (error: any) {
       logger.error('Get user posts controller error:', error);
+      throw error;
+    }
+  }
+
+  async getUserStats(req: AuthRequest, res: Response) {
+    try {
+      const userId = getParam(req.params.userId);
+      const stats = await this.postService.getUserStats(userId);
+      return ResponseUtil.success(res, stats);
+    } catch (error: any) {
+      logger.error('Get user stats controller error:', error);
       throw error;
     }
   }

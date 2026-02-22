@@ -87,6 +87,12 @@ export class PostService {
         throw new NotFoundError('Post not found');
       }
 
+      // findById already filters deletedAt: null, so this is unreachable,
+      // but kept as a safety net.
+      if (post.deletedAt) {
+        throw new NotFoundError('Post not found');
+      }
+
       return post;
     } catch (error: any) {
       logger.error('Error in getPost service:', error);
@@ -147,20 +153,31 @@ export class PostService {
 
   async deletePost(id: string, userId: string) {
     try {
-      // 1. Check ownership
-      const isOwner = await this.postRepo.checkOwnership(id, userId);
-      if (!isOwner) {
+      // 1. Fetch post (need createdAt for activity decrement)
+      const post = await this.postRepo.findById(id);
+      logger.info('Delete - post found:', { postId: post?.id, postUserId: post?.userId, requestUserId: userId }); // 🔍 DEBUG
+
+      if (!post) {
+        throw new NotFoundError('Post not found');
+      }
+      if (post.userId !== userId) {
+        logger.info('Delete - ownership mismatch', { postUserId: post.userId, requestUserId: userId }); // 🔍 DEBUG
         throw new AuthorizationError('You can only delete your own posts');
       }
 
-      // 2. Delete post
-      await this.postRepo.delete(id);
+      // 2. Soft-delete post (sets deletedAt, preserves all related data)
+      await this.postRepo.softDelete(id);
+      logger.info('Delete - softDelete complete', { id }); // 🔍 DEBUG
 
-      // 3. Remove from moderation queue (async, don't wait)
+      // 3. Decrement the daily activity counter (fire-and-forget)
+      this.activityService.decrementPostCreated(userId, post.createdAt)
+        .catch(err => logger.error('Failed to decrement activity:', err));
+
+      // 4. Remove from moderation queue (async, don't wait)
       this.queueService.removeFromQueue(id)
         .catch(err => logger.error('Failed to remove from moderation queue:', err));
 
-      logger.info(`Post deleted: ${id} by user ${userId}`);
+      logger.info(`Post soft-deleted: ${id} by user ${userId}`);
     } catch (error: any) {
       logger.error('Error in deletePost service:', error);
       throw error;
@@ -181,6 +198,15 @@ export class PostService {
       return { ...result, posts: enriched };
     } catch (error: any) {
       logger.error('Error in getUserPosts service:', error);
+      throw error;
+    }
+  }
+
+  async getUserStats(userId: string) {
+    try {
+      return await this.postRepo.getUserStats(userId);
+    } catch (error: any) {
+      logger.error('Error in getUserStats service:', error);
       throw error;
     }
   }

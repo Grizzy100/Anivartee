@@ -185,8 +185,16 @@ async function request<T>(
     ...rest
   } = options;
 
+  // Resolve the user's IANA timezone once (e.g. "Asia/Kolkata").
+  // Sent on every request so the server can bucket activity by the user's local date.
+  const clientTimezone =
+    typeof Intl !== "undefined"
+      ? Intl.DateTimeFormat().resolvedOptions().timeZone
+      : undefined;
+
   const headers: Record<string, string> = {
     "Content-Type": "application/json",
+    ...(clientTimezone ? { "x-timezone": clientTimezone } : {}),
     ...(extraHeaders as Record<string, string>),
   };
 

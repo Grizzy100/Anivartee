@@ -88,8 +88,8 @@ export class FlagRepository {
       const flags = await this.getFlagsByLink(linkId);
 
       // Get post's total likes
-      const post = await prisma.link.findUnique({
-        where: { id: linkId },
+      const post = await prisma.link.findFirst({
+        where: { id: linkId, deletedAt: null },
         select: { totalLikes: true }
       });
 

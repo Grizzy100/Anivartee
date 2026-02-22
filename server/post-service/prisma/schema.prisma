@@ -67,6 +67,7 @@ model Link {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  deletedAt DateTime? // Soft-delete: null = active, set = deleted
 
   sources         LinkSource[]
   likes           LinkLike[]
@@ -83,6 +84,7 @@ model Link {
   @@index([category])
   @@index([createdAt])
   @@index([status, hotScore])
+  @@index([deletedAt])
   @@schema("posts")
 }
 

@@ -1,6 +1,4 @@
 // app/page.tsx
-// app/page.tsx
-// app/page.tsx
 import Navbar from "@/components/Navbar";
 import CanvasViewport from "@/components/CanvasViewport";
 

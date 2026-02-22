@@ -2,6 +2,7 @@
 import prisma from '../utils/prisma.js';
 import { DatabaseError } from '../utils/errors.js';
 import { logger } from '../utils/logger.js';
+import { getRequestTimezone } from '../utils/requestContext.js';
 
 export type ActivityType = 'POST_CREATED' | 'POST_EDITED' | 'FACT_CHECK_COMPLETED';
 
@@ -75,9 +76,29 @@ export class ActivityRepository {
     }
   }
 
+  /**
+   * Resolve "today" in the caller's timezone (read from request context).
+   * Falls back to UTC when no timezone header was sent.
+   */
   private todayDate(): Date {
-    const now = new Date();
-    return new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));
+    const tz = getRequestTimezone();
+
+    try {
+      // Use formatToParts for robustness — no dependency on locale-specific separators
+      const parts = new Intl.DateTimeFormat('en-US', {
+        timeZone: tz,
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+      }).formatToParts(new Date());
+
+      const get = (type: string) => Number(parts.find(p => p.type === type)!.value);
+      return new Date(Date.UTC(get('year'), get('month') - 1, get('day')));
+    } catch {
+      // Invalid timezone string → fall back to UTC
+      const now = new Date();
+      return new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));
+    }
   }
 
   private fieldForType(type: ActivityType): string {
@@ -86,6 +107,33 @@ export class ActivityRepository {
       case 'POST_EDITED':           return 'postsEdited';
       case 'FACT_CHECK_COMPLETED':  return 'postsFactChecked';
       default:                      return 'postsCreated';
+    }
+  }
+
+  /**
+   * Decrement postsCreated for the date the post was originally created.
+   * Uses GREATEST to prevent going below zero.
+   */
+  async decrementPostCreated(userId: string, postCreatedAt: Date): Promise<void> {
+    try {
+      // Derive the UTC-midnight date from the post's createdAt.
+      // DailyActivity.date is stored as @db.Date (date-only, midnight UTC).
+      const date = new Date(Date.UTC(
+        postCreatedAt.getUTCFullYear(),
+        postCreatedAt.getUTCMonth(),
+        postCreatedAt.getUTCDate(),
+      ));
+
+      await prisma.$executeRaw`
+        UPDATE "posts"."DailyActivity"
+        SET "postsCreated" = GREATEST("postsCreated" - 1, 0),
+            "updatedAt"    = NOW()
+        WHERE "userId" = ${userId}::uuid
+          AND "date"   = ${date}::date
+      `;
+    } catch (error) {
+      logger.error('Database error in activity.decrementPostCreated:', error);
+      throw new DatabaseError('Failed to decrement daily activity');
     }
   }
 }

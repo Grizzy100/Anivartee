@@ -65,13 +65,13 @@ export class QueueRepository {
 
       const [items, total] = await Promise.all([
         prisma.moderationQueue.findMany({
-          where: { status: 'PENDING' },
+          where: { status: 'PENDING', post: { is: { deletedAt: null } } },
           include: queueInclude,
           orderBy: [{ priority: 'desc' }, { addedAt: 'asc' }],
           skip,
           take: pageSize,
         }),
-        prisma.moderationQueue.count({ where: { status: 'PENDING' } }),
+        prisma.moderationQueue.count({ where: { status: 'PENDING', post: { is: { deletedAt: null } } } }),
       ]);
 
       return { items, total, page, pageSize };
@@ -91,6 +91,7 @@ export class QueueRepository {
       const where = {
         status: 'CLAIMED' as const,
         claim: { factCheckerId, status: 'ACTIVE' as const },
+        post: { is: { deletedAt: null } },
       };
 
       const [items, total] = await Promise.all([

@@ -12,12 +12,22 @@ export class ClaimRepository {
       const now = new Date();
       const expiresAt = new Date(now.getTime() + CLAIM_TIMEOUT_MINUTES * 60 * 1000);
 
-      return await prisma.claimRecord.create({
-        data: {
+      return await prisma.claimRecord.upsert({
+        where: { queueId },
+        create: {
           queueId,
           postId,
           factCheckerId,
-          expiresAt
+          claimedAt: now,
+          expiresAt,
+          status: 'ACTIVE'
+        },
+        update: {
+          factCheckerId,
+          postId,
+          claimedAt: now,
+          expiresAt,
+          status: 'ACTIVE'
         }
       });
     } catch (error) {
@@ -46,7 +56,8 @@ export class ClaimRepository {
       return await prisma.claimRecord.findFirst({
         where: {
           postId,
-          status: 'ACTIVE'
+          status: 'ACTIVE',
+          expiresAt: { gt: new Date() } // Case 2: treat past-deadline claims as gone
         }
       });
     } catch (error) {
@@ -60,10 +71,12 @@ export class ClaimRepository {
       const startOfDay = new Date();
       startOfDay.setHours(0, 0, 0, 0);
 
+      // Case 4: only count ACTIVE/COMPLETED — EXPIRED & ABANDONED don't burn quota
       return await prisma.claimRecord.count({
         where: {
           factCheckerId,
-          claimedAt: { gte: startOfDay }
+          claimedAt: { gte: startOfDay },
+          status: { in: ['ACTIVE', 'COMPLETED'] }
         }
       });
     } catch (error) {

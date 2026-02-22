@@ -1,3 +1,4 @@
+//server\points-service\src\server.ts
 import 'dotenv/config';
 import express from 'express';
 import cors from 'cors';
@@ -13,7 +14,11 @@ const PORT = parseInt(env.PORT, 10);
 
 const allowedOrigins = env.ALLOWED_ORIGINS.split(',').map(origin => origin.trim());
 
-app.use(cors({ origin: allowedOrigins, credentials: true }));
+app.use(cors({
+  origin: allowedOrigins,
+  credentials: true,
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Service-Token', 'X-Timezone'],
+}));
 app.use(express.json({ limit: '1mb' }));
 app.use(express.urlencoded({ extended: true, limit: '1mb' }));
 app.use(cookieParser());

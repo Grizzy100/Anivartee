@@ -29,7 +29,7 @@ const activityRepo = new ActivityRepository();
 const activityService = new ActivityService(activityRepo);
 
 const queueService = new QueueService(queueRepo);
-const claimService = new ClaimService(claimRepo, queueService, pointsClient);
+const claimService = new ClaimService(claimRepo, queueService, pointsClient, postRepo);
 const verdictService = new VerdictService(
   claimService,
   queueService,

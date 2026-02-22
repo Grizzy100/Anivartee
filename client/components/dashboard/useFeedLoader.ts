@@ -44,6 +44,19 @@ export function useFeedLoader<T>(
     load();
   }, [load]);
 
+  // Refetch when the tab/window regains focus (catches cross-page mutations
+  // such as deleting a post on My Posts then navigating back to the feed).
+  useEffect(() => {
+    const onFocus = () => { load(); };
+    window.addEventListener("focus", onFocus);
+    return () => window.removeEventListener("focus", onFocus);
+  }, [load]);
+
+  /** Remove a single post from local state (e.g. after deletion). */
+  const removePost = useCallback((postId: string) => {
+    setPosts((prev) => prev.filter((p) => p.id !== postId));
+  }, []);
+
   // Client-side search filter
   const filteredPosts = searchQuery
     ? posts.filter((p) => {
@@ -62,6 +75,7 @@ export function useFeedLoader<T>(
     loading,
     error,
     retry: load,
+    removePost,
     searchQuery,
     setSearchQuery,
   } as const;

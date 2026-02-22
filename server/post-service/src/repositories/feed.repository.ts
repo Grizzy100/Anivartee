@@ -5,6 +5,9 @@ import { DatabaseError } from '../utils/errors.js';
 
 import { LinkStatus } from '../generated/prisma/index.js';
 
+/** Reusable filter to exclude soft-deleted posts. */
+const NOT_DELETED = { deletedAt: null } as const;
+
 // Shared Prisma include block for feed queries
 function feedInclude(userId: string | null) {
   return {
@@ -25,17 +28,17 @@ function feedInclude(userId: string | null) {
     // Per-user interaction state (empty array when no match)
     ...(userId
       ? {
-          likes: {
-            where: { userId },
-            select: { id: true },
-            take: 1,
-          },
-          saves: {
-            where: { userId },
-            select: { id: true },
-            take: 1,
-          },
-        }
+        likes: {
+          where: { userId },
+          select: { id: true },
+          take: 1,
+        },
+        saves: {
+          where: { userId },
+          select: { id: true },
+          take: 1,
+        },
+      }
       : {}),
   };
 }
@@ -44,7 +47,7 @@ export class FeedRepository {
   async getHomeFeed(userId: string | null, page: number, pageSize: number) {
     try {
       const skip = (page - 1) * pageSize;
-      const where = { status: { in: [LinkStatus.VALIDATED, LinkStatus.PENDING] } };
+      const where = { status: { in: [LinkStatus.VALIDATED, LinkStatus.PENDING, LinkStatus.UNDER_REVIEW] }, ...NOT_DELETED };
 
       const [posts, total] = await Promise.all([
         prisma.link.findMany({
@@ -71,6 +74,7 @@ export class FeedRepository {
       const where = {
         status: 'VALIDATED' as const,
         createdAt: { gte: sevenDaysAgo },
+        ...NOT_DELETED,
       };
 
       const [posts, total] = await Promise.all([
@@ -103,6 +107,7 @@ export class FeedRepository {
         FROM posts.links l
         LEFT JOIN posts.link_flags lf ON l.id = lf.link_id
         WHERE l.status IN ('VALIDATED', 'FLAGGED')
+          AND l."deletedAt" IS NULL
           AND l.total_likes > 5
         GROUP BY l.id
         HAVING COUNT(lf.id) > 2

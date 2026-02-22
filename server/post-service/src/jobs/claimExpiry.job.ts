@@ -2,6 +2,7 @@ import { ClaimService } from '../services/claim.service.js';
 import { ClaimRepository } from '../repositories/claim.repository.js';
 import { QueueService } from '../services/queue.service.js';
 import { QueueRepository } from '../repositories/queue.repository.js';
+import { PostRepository } from '../repositories/post.repository.js';
 import { PointsClient } from '../services/clients/points.client.js';
 import { logger } from '../utils/logger.js';
 
@@ -23,9 +24,10 @@ export function startClaimExpiryJob(): void {
   // Build the service graph
   const queueRepo = new QueueRepository();
   const claimRepo = new ClaimRepository();
+  const postRepo = new PostRepository();
   const pointsClient = new PointsClient();
   const queueService = new QueueService(queueRepo);
-  const claimService = new ClaimService(claimRepo, queueService, pointsClient);
+  const claimService = new ClaimService(claimRepo, queueService, pointsClient, postRepo);
 
   logger.info('Claim expiry job started (interval: 60s)');
 

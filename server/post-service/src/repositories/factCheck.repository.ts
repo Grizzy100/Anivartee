@@ -68,7 +68,7 @@ export class FactCheckRepository {
   async getFactChecksByChecker(factCheckerId: string, page: number, pageSize: number) {
     try {
       const skip = (page - 1) * pageSize;
-      const where = { factCheckerId };
+      const where = { factCheckerId, post: { is: { deletedAt: null } } };
 
       const [factChecks, total] = await Promise.all([
         prisma.factCheck.findMany({

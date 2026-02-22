@@ -176,8 +176,11 @@ export class InteractionRepository {
         prisma.linkSave.count({ where: { userId } }),
       ]);
 
+      // Filter out soft-deleted posts
+      const activeSaves = saves.filter(s => s.link.deletedAt === null);
+
       return {
-        posts: saves.map(s => s.link),
+        posts: activeSaves.map(s => s.link),
         total,
         page,
         pageSize,

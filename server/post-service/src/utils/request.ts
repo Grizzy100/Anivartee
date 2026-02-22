@@ -1,3 +1,4 @@
+//server\post-service\src\utils\request.ts
 export function getParam(param: string | string[]): string{
     return Array.isArray(param) ? param[0] : param;
 }

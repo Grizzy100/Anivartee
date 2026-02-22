@@ -66,7 +66,7 @@ export function Sidebar({ role }: SidebarProps) {
             alt="Anvartee"
             width={200}
             height={80}
-            className="h-20 w-auto object-contain"
+            className="h-20 w-auto object-contain scale-125"
             priority
           />
           <ToggleTheme />

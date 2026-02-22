@@ -28,6 +28,7 @@ import {
   sharePost,
   deletePost,
 } from "@/lib/api/post";
+import { ApiError } from "@/lib/api/api";
 import { CommentModal } from "./CommentModal";
 import { QuotedPost } from "./QuotedPost";
 import type { PostData, DashboardRole } from "./types";
@@ -115,6 +116,7 @@ export const PostCard = memo(function PostCard({
   const [saveLoading, setSaveLoading] = useState(false);
   const [commentModalOpen, setCommentModalOpen] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
 
   // ── Like ──
   const handleLike = useCallback(async () => {
@@ -184,12 +186,19 @@ export const PostCard = memo(function PostCard({
   // ── Delete ──
   const handleDelete = useCallback(async () => {
     if (deleting) return;
+    if (!window.confirm("Are you sure you want to delete this post? This cannot be undone.")) return;
     setDeleting(true);
+    setDeleteError(null);
     try {
       await deletePost(post.linkId);
       onDeleted?.(post.id);
-    } catch {
-      // Silently fail — could show toast in the future
+    } catch (err) {
+      const msg =
+        err instanceof ApiError && err.status === 401
+          ? "Session expired — please log in again to delete."
+          : "Failed to delete post. Please try again.";
+      setDeleteError(msg);
+      setTimeout(() => setDeleteError(null), 5000);
     } finally {
       setDeleting(false);
     }
@@ -269,6 +278,11 @@ export const PostCard = memo(function PostCard({
             )}
           </div>
         </div>
+
+        {/* ── Delete error ── */}
+        {deleteError && (
+          <p className="text-xs text-red-500 mb-2">{deleteError}</p>
+        )}
 
         {/* ── Content ── */}
         <h3 className="font-display text-sm font-semibold text-foreground mb-2 leading-snug tracking-wide">

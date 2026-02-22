@@ -19,6 +19,8 @@ import { ApiError } from "@/lib/api/api";
 import { useAuth } from "@/lib/auth/AuthContext";
 import { fieldClass } from "./field-class";
 import LogoMark from "@/components/LogoMark";
+import Image from "next/image";
+
 
 /* ───────────────── Validation (aligned with backend signUpSchema) ───────────────── */
 
@@ -131,12 +133,34 @@ export default function SignupForm() {
       }}
     >
       <div className="w-full max-w-[360px]">
-        <div className="border border-white bg-black/20 backdrop-blur-xs backdrop-saturate-150 p-5">
+        <div className="border border-white/50 bg-black/20 backdrop-blur-xs backdrop-saturate-150 p-5">
 
           {/* Header */}
-          <div className="flex flex-col items-center pb-4">
-            <LogoMark />
-            <h1 className="text-2xl font-bold bg-gradient-to-r from-gray-400 via-white to-gray-400 bg-clip-text text-transparent mt-4">
+          <div className="flex flex-col items-center pb-2">
+          <Link href="/" className="flex flex-col items-center cursor-pointer group">
+            <Image
+              src="/images/logo-new-removebg-preview.png"
+              alt="Anvartee"
+              width={200}
+              height={80}
+              className="
+                h-20 w-auto object-contain scale-150
+                transition-all duration-300 ease-out
+                brightness-90 contrast-110
+                group-hover:brightness-125 group-hover:contrast-125
+                group-hover:drop-shadow-[0_0_12px_rgba(255,255,255,0.35)]
+              "
+              priority
+            />
+
+          </Link>
+            <h1 className="
+              text-2xl font-bold mt-2
+              bg-gradient-to-r from-gray-400 via-white to-gray-400
+              bg-clip-text text-transparent
+              transition-all duration-300
+              group-hover:brightness-125
+            ">
               Create Account
             </h1>
             <p className="text-sm text-white/70 mt-1">
@@ -229,13 +253,13 @@ export default function SignupForm() {
           </div>
 
           {/* Google OAuth */}
-          <a
-            href={getGoogleOAuthUrl()}
+          {/* <a */}
+            {/* href={getGoogleOAuthUrl()}
             className="flex items-center justify-center gap-2 w-full h-9 border border-white/40 text-xs font-medium text-white hover:bg-white hover:text-black transition-all duration-200"
           >
             <GoogleIcon />
-            Continue with Google
-          </a>
+            Continue with Google */}
+          {/* </a> */}
 
           <p className="text-xs text-white/70 text-center mt-4">
             Already have an account?{" "}
@@ -262,33 +286,44 @@ function RoleToggle({
   const isChecker = value === "FACT_CHECKER";
 
   return (
-    <div className="flex justify-center">
+    <div className="flex justify-center py-2">
       <button
         type="button"
         onClick={() => onChange(isChecker ? "USER" : "FACT_CHECKER")}
         className="
-          relative w-[160px] h-9
-          backdrop-blur-md
-          bg-white/10
-          border border-white/30
+          relative w-[190px] h-11
           rounded-full
-          transition-all duration-300 ease-in-out
+          backdrop-blur-xl
+          bg-gradient-to-b from-white/20 to-white/5
+          border border-white/30
+          shadow-[0_4px_20px_rgba(0,0,0,0.35),inset_0_1px_1px_rgba(255,255,255,0.25)]
+          transition-all duration-300 ease-out
+          hover:border-white/40
         "
       >
-        {/* Sliding Glass Knob */}
+        {/* subtle glass highlight layer */}
+        <div className="absolute inset-0 rounded-full bg-gradient-to-b from-white/25 via-transparent to-transparent opacity-60" />
+
+        {/* sliding glass knob */}
         <div
           className={`
-            absolute top-1 left-1 h-7 w-[72px]
+            absolute top-[4px] left-[4px]
+            h-[34px] w-[88px]
             rounded-full
-            bg-white/80
-            shadow-md
-            transition-all duration-300 ease-in-out
-            ${isChecker ? "translate-x-[78px]" : ""}
+            backdrop-blur-md
+            bg-gradient-to-b from-white/90 to-white/60
+            border border-white/70
+            shadow-[0_2px_10px_rgba(0,0,0,0.35)]
+            transition-all duration-300 ease-out
+            ${isChecker ? "translate-x-[94px]" : ""}
           `}
-        />
+        >
+          {/* knob inner shine */}
+          <div className="absolute inset-0 rounded-full bg-gradient-to-b from-white/80 via-transparent to-transparent opacity-70" />
+        </div>
 
-        {/* Labels */}
-        <div className="absolute inset-0 flex items-center justify-between px-4 text-[11px] font-medium">
+        {/* labels */}
+        <div className="absolute inset-0 flex items-center justify-between px-6 text-[14px] font-medium tracking-wide">
           <span
             className={`transition-colors duration-300 ${
               !isChecker ? "text-black" : "text-white/70"
@@ -296,6 +331,7 @@ function RoleToggle({
           >
             User
           </span>
+
           <span
             className={`transition-colors duration-300 ${
               isChecker ? "text-black" : "text-white/70"

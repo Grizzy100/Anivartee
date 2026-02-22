@@ -18,7 +18,7 @@ export class VerdictService {
     private postRepo: PostRepository,
     private pointsClient: PointsClient,
     private activityService: ActivityService
-  ) {}
+  ) { }
 
   /**
    * Submit a verdict for a claimed post.
@@ -30,6 +30,13 @@ export class VerdictService {
     const activeClaim = await this.claimService.getActiveClaim(postId);
     if (!activeClaim || activeClaim.factCheckerId !== factCheckerId) {
       throw new AuthorizationError('You do not have an active claim on this post');
+    }
+
+    // Case 5: Guard against submitting after the 30-min window has closed.
+    // The expiry cron runs every 60s so there's a window where the DB record is
+    // still ACTIVE but the timer has already elapsed — we close that gap here.
+    if (activeClaim.expiresAt <= new Date()) {
+      throw new AuthorizationError('Your claim on this post has expired. Please re-claim it to submit a verdict');
     }
 
     // 2. Check for duplicate fact-check

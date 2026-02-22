@@ -10,6 +10,7 @@ import { env } from './config/env.js';
 import { logger } from './utils/logger.js';
 import prisma from './utils/prisma.js';
 import { startClaimExpiryJob, stopClaimExpiryJob } from './jobs/claimExpiry.job.js';
+import { requestContext } from './utils/requestContext.js';
 
 const app = express();
 const PORT = parseInt(env.PORT, 10);
@@ -18,12 +19,20 @@ const allowedOrigins = env.ALLOWED_ORIGINS.split(',').map(origin => origin.trim(
 
 app.use(cors({
   origin: allowedOrigins,
-  credentials: true
+  credentials: true,
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Service-Token', 'X-Timezone'],
 }));
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 app.use(cookieParser());
 app.use(generalLimiter);
+
+// Propagate the client's IANA timezone into AsyncLocalStorage so that
+// activity recording resolves "today" in the user's local timezone.
+app.use((req, _res, next) => {
+  const tz = (req.headers['x-timezone'] as string) || undefined;
+  requestContext.run({ timezone: tz }, next);
+});
 
 app.use('/api', routes);
 

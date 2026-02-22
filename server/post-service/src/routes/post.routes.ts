@@ -27,6 +27,7 @@ const postController = new PostController(postService);
 
 // Routes
 router.post('/', authenticate, asyncHandler((req, res) => postController.createPost(req, res)));
+router.get('/user/:userId/stats', asyncHandler((req, res) => postController.getUserStats(req, res)));
 router.get('/user/:userId', asyncHandler((req, res) => postController.getUserPosts(req, res)));
 router.get('/:id', optionalAuth, asyncHandler((req, res) => postController.getPost(req, res)));
 router.patch('/:id', authenticate, asyncHandler((req, res) => postController.updatePost(req, res)));

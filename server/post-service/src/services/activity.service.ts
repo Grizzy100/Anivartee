@@ -27,6 +27,19 @@ export class ActivityService {
   }
 
   /**
+   * Decrement the postsCreated counter for the day the post was originally created.
+   * Fire-and-forget safe — errors are logged but never thrown.
+   */
+  async decrementPostCreated(userId: string, postCreatedAt: Date): Promise<void> {
+    try {
+      await this.activityRepo.decrementPostCreated(userId, postCreatedAt);
+      logger.debug(`Activity decremented: POST_CREATED for user ${userId}`);
+    } catch (error) {
+      logger.error('Error decrementing activity:', error);
+    }
+  }
+
+  /**
    * Return calendar data for a given month.
    *
    * Response shape:

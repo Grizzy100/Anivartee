@@ -5,6 +5,9 @@ import { logger } from '../utils/logger.js';
 import { DatabaseError, NotFoundError } from '../utils/errors.js';
 import { computeHotScore } from '../utils/hotScore.js';
 
+/** Reusable filter to exclude soft-deleted posts. */
+const NOT_DELETED = { deletedAt: null } as const;
+
 export class PostRepository {
   async create(data: CreatePostInput, userId: string) {
     try {
@@ -39,8 +42,8 @@ export class PostRepository {
 
   async findById(id: string) {
     try {
-      return await prisma.link.findUnique({
-        where: { id },
+      return await prisma.link.findFirst({
+        where: { id, ...NOT_DELETED },
         include: {
           sources: true,
           factChecks: {
@@ -94,13 +97,18 @@ export class PostRepository {
     }
   }
 
-  async delete(id: string) {
+  /**
+   * Soft-delete: sets deletedAt instead of removing the row.
+   * All related data (likes, comments, etc.) is preserved.
+   */
+  async softDelete(id: string) {
     try {
-      return await prisma.link.delete({
-        where: { id }
+      return await prisma.link.update({
+        where: { id },
+        data: { deletedAt: new Date() }
       });
     } catch (error: any) {
-      logger.error('Database error in post.delete:', error);
+      logger.error('Database error in post.softDelete:', error);
       throw new DatabaseError('Failed to delete post');
     }
   }
@@ -158,8 +166,8 @@ export class PostRepository {
     try {
       const skip = (page - 1) * pageSize;
 
-      // Build WHERE clause
-      const where: Record<string, unknown> = { userId };
+      // Build WHERE clause — always exclude soft-deleted
+      const where: Record<string, unknown> = { userId, ...NOT_DELETED };
       if (status) {
         where.status = status;
       }
@@ -241,6 +249,7 @@ export class PostRepository {
       return await prisma.link.count({
         where: {
           userId,
+          ...NOT_DELETED,
           createdAt: {
             gte: startOfDay
           }
@@ -253,13 +262,39 @@ export class PostRepository {
   }
 
   /**
+   * Aggregated stats for a single user: total posts, total likes received, verified count.
+   */
+  async getUserStats(userId: string) {
+    try {
+      const activeFilter = { userId, ...NOT_DELETED };
+      const [postsCount, likesAgg, verifiedCount] = await Promise.all([
+        prisma.link.count({ where: activeFilter }),
+        prisma.link.aggregate({
+          where: activeFilter,
+          _sum: { totalLikes: true },
+        }),
+        prisma.link.count({ where: { ...activeFilter, status: 'VALIDATED' as any } }),
+      ]);
+
+      return {
+        postsCount,
+        totalLikesReceived: likesAgg._sum.totalLikes ?? 0,
+        verifiedCount,
+      };
+    } catch (error: any) {
+      logger.error('Database error in post.getUserStats:', error);
+      throw new DatabaseError('Failed to fetch user stats');
+    }
+  }
+
+  /**
    * Returns true if post exists and belongs to userId.
    * Throws NotFoundError if post doesn't exist.
    */
   async checkOwnership(postId: string, userId: string): Promise<boolean> {
     try {
-      const post = await prisma.link.findUnique({
-        where: { id: postId },
+      const post = await prisma.link.findFirst({
+        where: { id: postId, ...NOT_DELETED },
         select: { userId: true }
       });
 
@@ -278,8 +313,8 @@ export class PostRepository {
    */
   async recalculateHotScore(postId: string): Promise<void> {
     try {
-      const post = await prisma.link.findUnique({
-        where: { id: postId },
+      const post = await prisma.link.findFirst({
+        where: { id: postId, ...NOT_DELETED },
         select: {
           status: true,
           totalLikes: true,

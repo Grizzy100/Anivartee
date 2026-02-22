@@ -22,6 +22,7 @@ export function enforcePostLimit() {
       const todayPostCount = await prisma.link.count({
         where: {
           userId: req.user.userId,
+          deletedAt: null,
           createdAt: { gte: startOfDay }
         }
       });

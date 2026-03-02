@@ -83,6 +83,11 @@ export function Sidebar({ role }: SidebarProps) {
 
           return (
             <Link
+              id={
+                item.label === "My Posts" ? "tour-sidebar-posts"
+                  : item.label === "My Profile" ? "tour-sidebar-profile"
+                    : undefined
+              }
               key={item.label}
               href={fullPath}
               className={cn(

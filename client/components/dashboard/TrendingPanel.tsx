@@ -50,7 +50,7 @@ export function TrendingPanel() {
   }, []);
 
   return (
-    <div className="bg-card border border-border rounded-lg p-4">
+    <div id="tour-trending" className="bg-card border border-border rounded-lg p-4">
       {/* Trending Topics */}
       <div className="flex items-center gap-2 mb-3">
         <TrendingUp className="w-4 h-4 text-primary" />

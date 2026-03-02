@@ -188,9 +188,28 @@ export class PostService {
     try {
       const result = await this.postRepo.getUserPosts(userId, page, pageSize, status, sortBy);
 
+      // ── Self-healing: reconcile stale Link.status with fact-check verdicts ──
+      // If a post is still PENDING/UNDER_REVIEW but has a completed fact-check,
+      // the DB was written out of order (e.g. legacy path, crash, or test data).
+      // Fix the response immediately and schedule a background DB correction.
+      const STALE_STATUSES = new Set(['PENDING', 'UNDER_REVIEW']);
+      const corrected = result.posts.map((post) => {
+        const lastVerdict = post.factChecks?.[post.factChecks.length - 1]?.verdict as string | undefined;
+        if (
+          STALE_STATUSES.has(post.status) &&
+          (lastVerdict === 'VALIDATED' || lastVerdict === 'DEBUNKED')
+        ) {
+          // Asynchronously heal the DB — don't block the response
+          this.postRepo.updateStatus(post.id, lastVerdict)
+            .catch((err: unknown) => logger.warn(`Status self-heal failed for post ${post.id}:`, err));
+          return { ...post, status: lastVerdict as typeof post.status };
+        }
+        return post;
+      });
+
       // Enrich posts with author profile + rank data
       const enriched = await enrichPostsWithUserData(
-        result.posts,
+        corrected,
         this.userClient ?? null,
         this.pointsClient,
       );

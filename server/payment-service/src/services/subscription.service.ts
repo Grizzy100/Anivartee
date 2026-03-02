@@ -19,6 +19,7 @@ export class SubscriptionService {
   ) { }
 
   async createOrGetCustomerForUser(userId: string) {
+    // First, check if they already have a customer record (cheap fast path)
     const existing = await prisma.userPaymentCustomer.findUnique({
       where: { userId },
     });
@@ -34,13 +35,20 @@ export class SubscriptionService {
       metadata: { userId },
     });
 
-    return prisma.userPaymentCustomer.create({
-      data: {
+    // Use upsert instead of create to handle concurrent checkout sessions
+    // that both passed the findUnique check before either had created the record.
+    // The update branch is a no-op (empty object) — we never want to overwrite
+    // an existing stripeCustomerId.
+    return prisma.userPaymentCustomer.upsert({
+      where: { userId },
+      update: {}, // No-op: if another request just created it, don't overwrite
+      create: {
         userId,
         stripeCustomerId: customer.id,
       },
     });
   }
+
 
   async startSubscription(userId: string, planId: string, regionTier?: RegionTier) {
     let plan = await prisma.subscriptionPlan.findUnique({

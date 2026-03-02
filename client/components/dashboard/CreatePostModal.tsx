@@ -3,6 +3,7 @@
 import { useState, useCallback, useRef, useEffect } from "react";
 import { X, Link2, Plus, Loader2 } from "lucide-react";
 import { createPost, type CreatePostPayload } from "@/lib/api/post";
+import { ApiError } from "@/lib/api/api";
 import type { LinkCategory } from "@/lib/api/feed";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
@@ -98,6 +99,12 @@ export function CreatePostModal({ open, onClose, onCreated }: CreatePostModalPro
         onClose();
         onCreated?.();
       } catch (err) {
+        // 429 = daily ranked post quota exceeded — show a global toast and close
+        if (err instanceof ApiError && err.status === 429) {
+          window.dispatchEvent(new CustomEvent("quota-exceeded"));
+          onClose();
+          return;
+        }
         setError(err instanceof Error ? err.message : "Failed to create post");
       } finally {
         setSubmitting(false);

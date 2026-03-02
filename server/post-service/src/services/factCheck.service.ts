@@ -2,18 +2,21 @@
 import { FactCheckRepository } from '../repositories/factCheck.repository.js';
 import { PostRepository } from '../repositories/post.repository.js';
 import { PointsClient } from './clients/points.client.js';
+import { UserClient } from './clients/user.client.js';
 import { ActivityService } from './activity.service.js';
 import { CreateFactCheckInput } from '../validators/factCheck.schema.js';
 import { NotFoundError, ConflictError, ValidationError } from '../utils/errors.js';
 import { logger } from '../utils/logger.js';
+import { enrichPostsWithUserData } from '../utils/enrichment.js';
 
 export class FactCheckService {
   constructor(
     private factCheckRepo: FactCheckRepository,
     private postRepo: PostRepository,
     private pointsClient: PointsClient,
-    private activityService: ActivityService
-  ) {}
+    private activityService: ActivityService,
+    private userClient: UserClient
+  ) { }
 
   async createFactCheck(postId: string, factCheckerId: string, data: CreateFactCheckInput) {
     try {
@@ -89,7 +92,34 @@ export class FactCheckService {
 
   async getFactChecksByChecker(factCheckerId: string, page: number, pageSize: number) {
     try {
-      return await this.factCheckRepo.getFactChecksByChecker(factCheckerId, page, pageSize);
+      const result = await this.factCheckRepo.getFactChecksByChecker(factCheckerId, page, pageSize);
+
+      // Pack pseudo-posts for the enrichment pipeline
+      const pseudoPosts = result.factChecks.map(fc => {
+        const { post, ...fcData } = fc;
+        return {
+          ...post,
+          factChecks: [fcData]
+        };
+      });
+
+      const enrichedPosts = await enrichPostsWithUserData(
+        pseudoPosts,
+        this.userClient,
+        this.pointsClient
+      );
+
+      // Unpack pseudo-posts back to exact FactCheck shape
+      result.factChecks = enrichedPosts.map(ep => {
+        const fcData = ep.factChecks[0];
+        const { factChecks, ...postData } = ep;
+        return {
+          ...fcData,
+          post: postData
+        };
+      }) as any;
+
+      return result;
     } catch (error: any) {
       logger.error('Error in getFactChecksByChecker service:', error);
       throw error;

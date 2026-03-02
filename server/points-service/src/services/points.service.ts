@@ -7,16 +7,13 @@ import {
 import { CONSTANTS } from '../config/constants.js';
 import type { UserRankData, RankLimits } from '../types/auth.types.js';
 import { logger } from '../utils/logger.js';
+import { redis } from '../utils/redis.js';
 
 export class PointsService {
-  /** In-memory TTL cache for the public leaderboard. */
-  private leaderboardCache: { data: any[]; expiry: number } | null = null;
-  private static LEADERBOARD_CACHE_TTL = 60_000; // 60 seconds
-
   constructor(
     private pointsRepo: PointsRepository,
     private userClient: UserClient
-  ) {}
+  ) { }
 
   // ─── Rank computation ──────────────────────────────────────
 
@@ -69,17 +66,23 @@ export class PointsService {
 
   /**
    * Get a user's rank data including their points, rank name, and limits.
-   * Called by post-service via GET /api/internal/users/:userId/rank
+   * Cached in Redis for 60s to reduce DB load.
    */
   async getUserRank(userId: string): Promise<UserRankData> {
+    const cacheKey = `rank:${userId}`;
+    const cached = await redis.get(cacheKey).catch(() => null);
+    if (cached) {
+      try { return JSON.parse(cached); } catch { }
+    }
+
     // 1. Get current points balance
     const points = await this.pointsRepo.getBalance(userId);
 
     // 2. Get user role from user-service
     const user = await this.userClient.getUserById(userId);
     const role = (user?.role === 'FACT_CHECKER') ? 'FACT_CHECKER'
-               : (user?.role === 'ADMIN') ? 'ADMIN'
-               : 'USER';
+      : (user?.role === 'ADMIN') ? 'ADMIN'
+        : 'USER';
 
     // 3. Compute rank based on role + points
     const isChecker = role === 'FACT_CHECKER';
@@ -87,7 +90,7 @@ export class PointsService {
       ? this.computeCheckerRank(points)
       : this.computeUserRank(points);
 
-    return {
+    const result = {
       userId,
       role: role as 'USER' | 'FACT_CHECKER' | 'ADMIN',
       rankLevel,
@@ -95,17 +98,22 @@ export class PointsService {
       points,
       limits
     };
+
+    await redis.setex(cacheKey, 60, JSON.stringify(result)).catch(() => { });
+    return result;
   }
 
   /**
    * Award (or deduct) points to a user.
-   * Called by post-service via POST /api/internal/points/award
    */
   async awardPoints(userId: string, points: number, reason: string, contextId?: string) {
     const { entry, newBalance } = await this.pointsRepo.addEntry(userId, points, reason, contextId);
 
-    // Invalidate leaderboard cache since balances changed
-    this.leaderboardCache = null;
+    // Invalidate caches
+    await Promise.all([
+      redis.del('leaderboard').catch(() => { }),
+      redis.del(`rank:${userId}`).catch(() => { })
+    ]);
 
     logger.info(`Points awarded: ${points} to ${userId} for ${reason} (balance: ${newBalance})`);
 
@@ -134,18 +142,20 @@ export class PointsService {
   }
 
   /**
-   * Get the leaderboard (cached for 60 s to reduce DB load on this public endpoint).
+   * Get the leaderboard (cached).
    */
   async getLeaderboard(limit: number = 20) {
-    const now = Date.now();
-
-    if (this.leaderboardCache && this.leaderboardCache.expiry > now) {
-      return this.leaderboardCache.data.slice(0, limit);
+    const cached = await redis.get('leaderboard').catch(() => null);
+    if (cached) {
+      try {
+        const data = JSON.parse(cached);
+        return data.slice(0, limit);
+      } catch { }
     }
 
     // Fetch the max allowed and cache the full set; slice per-request
     const data = await this.pointsRepo.getLeaderboard(CONSTANTS.MAX_PAGE_SIZE);
-    this.leaderboardCache = { data, expiry: now + PointsService.LEADERBOARD_CACHE_TTL };
+    await redis.setex('leaderboard', 60, JSON.stringify(data)).catch(() => { });
     return data.slice(0, limit);
   }
 }

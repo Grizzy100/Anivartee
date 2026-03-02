@@ -3,6 +3,7 @@ import prisma from '../utils/prisma.js';
 import { logger } from '../utils/logger.js';
 import { DatabaseError, ConflictError } from '../utils/errors.js';
 import type { SharePlatform } from '../generated/prisma/index.js';
+import { redis } from '../utils/redis.js';
 
 export class InteractionRepository {
   // ============= POST LIKES =============
@@ -73,6 +74,47 @@ export class InteractionRepository {
     } catch (error: any) {
       logger.error('Database error in interaction.getLikesByLink:', error);
       throw new DatabaseError('Failed to fetch likes');
+    }
+  }
+
+  // ============= POST FLAGS =============
+
+  /** Idempotent upsert — safe against concurrent double-flag. */
+  async createFlag(linkId: string, userId: string, role: string, rankLevel: number) {
+    try {
+      // Prisma has no unique constraint on LinkFlag yet in schema,
+      // but we emulate upsert by checking existence first or deleting existing flags.
+      await prisma.linkFlag.deleteMany({
+        where: { linkId, flaggerUserId: userId },
+      });
+      return await prisma.linkFlag.create({
+        data: { linkId, flaggerUserId: userId, flaggerRole: role, flaggerRankLevel: rankLevel },
+      });
+    } catch (error: any) {
+      logger.error('Database error in interaction.createFlag:', error);
+      throw new DatabaseError('Failed to create flag');
+    }
+  }
+
+  async deleteFlag(linkId: string, userId: string) {
+    try {
+      return await prisma.linkFlag.deleteMany({
+        where: { linkId, flaggerUserId: userId },
+      });
+    } catch (error: any) {
+      logger.error('Database error in interaction.deleteFlag:', error);
+      throw new DatabaseError('Failed to delete flag');
+    }
+  }
+
+  async findFlag(linkId: string, userId: string) {
+    try {
+      return await prisma.linkFlag.findFirst({
+        where: { linkId, flaggerUserId: userId },
+      });
+    } catch (error: any) {
+      logger.error('Database error in interaction.findFlag:', error);
+      throw new DatabaseError('Failed to find flag');
     }
   }
 
@@ -222,22 +264,38 @@ export class InteractionRepository {
 
   async hasUserViewedRecently(linkId: string, userId: string, hours: number = 24): Promise<boolean> {
     try {
-      const threshold = new Date(Date.now() - hours * 60 * 60 * 1000);
+      const cacheKey = `view:${linkId}:u:${userId}`;
+      let redisError = false;
 
+      const setnx = await redis.setnx(cacheKey, '1').catch((err: any) => {
+        logger.warn('Redis view dedup failed, falling back to db', err);
+        redisError = true;
+        return null;
+      });
+
+      if (setnx === 1) {
+        await redis.expire(cacheKey, hours * 3600).catch(() => { });
+        return false; // Key didn't exist and we successfully set it for 24h
+      }
+
+      if (!redisError) {
+        return true; // Key already existed (user viewed recently)
+      }
+
+      // Fallback: Redis threw an error, check DB directly
+      const threshold = new Date(Date.now() - hours * 60 * 60 * 1000);
       const view = await prisma.linkView.findFirst({
         where: {
           linkId,
           userId,
-          createdAt: {
-            gte: threshold
-          }
+          createdAt: { gte: threshold }
         }
       });
-
       return !!view;
+
     } catch (error: any) {
-      logger.error('Database error in interaction.hasUserViewedRecently:', error);
-      throw new DatabaseError('Failed to check view history');
+      logger.error('Error in interaction.hasUserViewedRecently:', error);
+      return false; // Fail open (allow view) instead of throwing
     }
   }
 

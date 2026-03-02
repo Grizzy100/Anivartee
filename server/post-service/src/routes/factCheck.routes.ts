@@ -5,6 +5,7 @@ import { FactCheckService } from '../services/factCheck.service.js';
 import { FactCheckRepository } from '../repositories/factCheck.repository.js';
 import { PostRepository } from '../repositories/post.repository.js';
 import { PointsClient } from '../services/clients/points.client.js';
+import { UserClient } from '../services/clients/user.client.js';
 import { ActivityService } from '../services/activity.service.js';
 import { ActivityRepository } from '../repositories/activity.repository.js';
 import { authenticate } from '../middlewares/auth.middleware.js';
@@ -17,9 +18,10 @@ const router = Router();
 const factCheckRepo = new FactCheckRepository();
 const postRepo = new PostRepository();
 const pointsClient = new PointsClient();
+const userClient = new UserClient();
 const activityRepo = new ActivityRepository();
 const activityService = new ActivityService(activityRepo);
-const factCheckService = new FactCheckService(factCheckRepo, postRepo, pointsClient, activityService);
+const factCheckService = new FactCheckService(factCheckRepo, postRepo, pointsClient, activityService, userClient);
 const factCheckController = new FactCheckController(factCheckService);
 
 // Routes (only FACT_CHECKERs can create fact-checks)
@@ -28,12 +30,12 @@ router.get('/my-fact-checks',
   requireRole(['FACT_CHECKER', 'ADMIN']),
   asyncHandler((req, res) => factCheckController.getMyFactChecks(req, res))
 );
-router.post('/posts/:linkId/fact-checks', 
-  authenticate, 
+router.post('/posts/:linkId/fact-checks',
+  authenticate,
   requireRole(['FACT_CHECKER', 'ADMIN']),
   asyncHandler((req, res) => factCheckController.createFactCheck(req, res))
 );
-router.get('/posts/:linkId/fact-checks', asyncHandler((req, res) => 
+router.get('/posts/:linkId/fact-checks', asyncHandler((req, res) =>
   factCheckController.getFactChecks(req, res)
 ));
 

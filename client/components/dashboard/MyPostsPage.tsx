@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useEffect, useMemo } from "react";
+import React, { useState, useCallback, useEffect, useMemo } from "react";
 import { Loader2, FileText, SlidersHorizontal } from "lucide-react";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { SlideTabs } from "@/components/ui/slide-tabs";
@@ -12,6 +12,8 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
 import { FeedContent } from "./FeedContent";
+import { FactCheckPostCard } from "./FactCheckPostCard";
+import { PostCard } from "./PostCard";
 import { feedPostToPostData } from "./adapters";
 import { getUserPosts, getMyFactChecks } from "@/lib/api/post";
 import { useAuth } from "@/lib/auth/AuthContext";
@@ -47,6 +49,8 @@ function factCheckToPostData(fc: FactCheckWithPost): PostData {
     id: fc.id,
     // Override status with the fact-check verdict
     status: fc.verdict === "VALIDATED" ? "verified" : "debunked",
+    // Inject THIS specific fact-check so FactCheckPostCard can render it
+    factChecks: [fc],
   };
 }
 
@@ -141,21 +145,53 @@ export function MyPostsPage({ role }: MyPostsPageProps) {
     []
   );
 
-  // ── The post list section (shared between both tabs for "posts") ──
-  const postsSection = (
-    <>
-      {/* Status Filter Tabs */}
-      <SlideTabs
-        tabs={statusButtons}
-        activeIndex={statusFilter}
-        onActiveChange={setStatusFilter}
-        className="mb-4"
-      />
+  // ── Client-side filter/sort for fact-checks ──
+  const displayedFactChecks = useMemo(() => {
+    let result = [...factChecks];
+    const statusVal = STATUS_FILTERS[statusFilter].value;
 
-      {/* Sort Dropdown */}
+    if (statusVal === "VALIDATED") {
+      result = result.filter(fc => fc.status === "verified");
+    } else if (statusVal === "DEBUNKED") {
+      result = result.filter(fc => fc.status === "debunked");
+    } else if (statusVal === "PENDING" || statusVal === "UNDER_REVIEW") {
+      result = []; // Fact-checks are only validated/debunked
+    }
+
+    if (sortBy === "newest") {
+      result.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+    } else if (sortBy === "oldest") {
+      result.sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime());
+    } else if (sortBy === "most-liked") {
+      result.sort((a, b) => b.likes - a.likes);
+    } else if (sortBy === "most-shared") {
+      result.sort((a, b) => (b.shares ?? 0) - (a.shares ?? 0));
+    } else if (sortBy === "most-flagged") {
+      result.sort((a, b) => (b.flags ?? 0) - (a.flags ?? 0));
+    }
+
+    return result;
+  }, [factChecks, statusFilter, sortBy]);
+
+  // ── Shared Filters Section ──
+  const filtersSection = (
+    <>
+      {/* Status Filter Tabs — shown on the Posts tab for all roles */}
+      {activeTab === "posts" && (
+        <SlideTabs
+          tabs={statusButtons}
+          activeIndex={statusFilter}
+          onActiveChange={setStatusFilter}
+          className="mb-4"
+        />
+      )}
+
+      {/* Sort Dropdown & Count */}
       <div className="flex items-center justify-between mb-4">
         <p className="text-xs text-muted-foreground">
-          {posts.length} post{posts.length !== 1 ? "s" : ""}
+          {activeTab === "posts"
+            ? `${posts.length} post${posts.length !== 1 ? "s" : ""}`
+            : `${displayedFactChecks.length} fact-check${displayedFactChecks.length !== 1 ? "s" : ""}`}
         </p>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
@@ -180,39 +216,67 @@ export function MyPostsPage({ role }: MyPostsPageProps) {
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
-
-      {/* Post list */}
-      <FeedContent
-        posts={posts}
-        role={role}
-        loading={postsLoading}
-        error={postsError}
-        emptyMessage={
-          statusFilter === 0
-            ? "You haven't created any posts yet."
-            : `No ${STATUS_FILTERS[statusFilter].label.toLowerCase()} posts found.`
-        }
-        onRetry={loadPosts}
-        showStatus
-        currentUserId={user?.id}
-        onPostDeleted={handlePostDeleted}
-      />
     </>
   );
 
-  // ── Fact-checks section ──
-  const factChecksSection = (
+  // ── The post list section (Posts tab) ──
+  const postsSection = (
     <FeedContent
-      posts={factChecks}
+      posts={posts}
       role={role}
-      loading={fcLoading}
-      error={fcError}
-      emptyMessage="You haven't submitted any fact-checks yet."
-      onRetry={loadFactChecks}
+      loading={postsLoading}
+      error={postsError}
+      emptyMessage={
+        statusFilter === 0
+          ? "You haven't created any posts yet."
+          : `No ${STATUS_FILTERS[statusFilter].label.toLowerCase()} posts found.`
+      }
+      onRetry={loadPosts}
       showStatus
       currentUserId={user?.id}
-      onPostDeleted={handleFcDeleted}
+      onPostDeleted={handlePostDeleted}
+      hideFactCheckCards
     />
+  );
+
+  // ── Fact-checks section ──
+  const factChecksSection = fcLoading ? (
+    <div className="flex items-center justify-center py-20">
+      <div className="w-2.5 h-2.5 bg-muted-foreground rounded-full animate-bounce" />
+    </div>
+  ) : fcError ? (
+    <div className="text-center py-20 space-y-3">
+      <p className="text-sm text-destructive">{fcError}</p>
+      <Button onClick={loadFactChecks} variant="outline" size="sm">
+        Retry
+      </Button>
+    </div>
+  ) : displayedFactChecks.length === 0 ? (
+    <div className="text-center py-20">
+      <p className="text-sm text-muted-foreground">You haven't submitted any fact-checks yet.</p>
+    </div>
+  ) : (
+    <div className="space-y-4 pb-8">
+      {displayedFactChecks.map((post) => (
+        <React.Fragment key={post.id}>
+          {post.factChecks && post.factChecks.length > 0 ? (
+            <FactCheckPostCard
+              factCheck={post.factChecks[0]} // Show the most recent one
+              originalPost={post}
+              role={role}
+            />
+          ) : (
+            <PostCard
+              post={post}
+              role={role}
+              showStatus
+              isOwner={!!user?.id && post.userId === user.id}
+              onDeleted={handleFcDeleted}
+            />
+          )}
+        </React.Fragment>
+      ))}
+    </div>
   );
 
   return (
@@ -231,6 +295,9 @@ export function MyPostsPage({ role }: MyPostsPageProps) {
             : "View and manage all your submitted posts."}
         </p>
       </div>
+
+      {/* Shared Filters rendered above the feeds */}
+      {filtersSection}
 
       {/* Fact-checkers get tabs: Posts | Fact-Checks */}
       {role === "factchecker" ? (

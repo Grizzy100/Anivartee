@@ -12,7 +12,9 @@ import {
   Trash2,
   MoreHorizontal,
   Loader2,
+  Flag,
 } from "lucide-react";
+import { TbFlag3 } from "react-icons/tb";
 import { TiBookmark } from "react-icons/ti";
 import {
   DropdownMenu,
@@ -27,6 +29,8 @@ import {
   unsavePost,
   sharePost,
   deletePost,
+  flagPost,
+  unflagPost,
 } from "@/lib/api/post";
 import { ApiError } from "@/lib/api/api";
 import { CommentModal } from "./CommentModal";
@@ -112,20 +116,29 @@ export const PostCard = memo(function PostCard({
   const [liked, setLiked] = useState(post.liked);
   const [likeCount, setLikeCount] = useState(post.likes);
   const [saved, setSaved] = useState(post.saved);
+  const [flagged, setFlagged] = useState(post.flagged || false);
   const [likeLoading, setLikeLoading] = useState(false);
   const [saveLoading, setSaveLoading] = useState(false);
+  const [flagLoading, setFlagLoading] = useState(false);
   const [commentModalOpen, setCommentModalOpen] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [deleteError, setDeleteError] = useState<string | null>(null);
 
   // ── Like ──
   const handleLike = useCallback(async () => {
-    if (likeLoading) return;
+    if (likeLoading || flagLoading) return;
     setLikeLoading(true);
 
     const wasLiked = liked;
+    const wasFlagged = flagged;
+
     setLiked(!wasLiked);
     setLikeCount((c) => (wasLiked ? c - 1 : c + 1));
+
+    // Mutually exclusive: turning on like turns off flag
+    if (!wasLiked && wasFlagged) {
+      setFlagged(false);
+    }
 
     try {
       if (wasLiked) {
@@ -135,11 +148,46 @@ export const PostCard = memo(function PostCard({
       }
     } catch {
       setLiked(wasLiked);
+      setFlagged(wasFlagged);
       setLikeCount((c) => (wasLiked ? c + 1 : c - 1));
     } finally {
       setLikeLoading(false);
     }
-  }, [liked, likeLoading, post.linkId]);
+  }, [liked, flagged, likeLoading, flagLoading, post.linkId]);
+
+  // ── Flag ──
+  const handleFlag = useCallback(async () => {
+    if (flagLoading || likeLoading) return;
+    setFlagLoading(true);
+
+    const wasFlagged = flagged;
+    const wasLiked = liked;
+
+    setFlagged(!wasFlagged);
+
+    // Mutually exclusive: turning on flag turns off like
+    if (!wasFlagged && wasLiked) {
+      setLiked(false);
+      setLikeCount((c) => c - 1);
+    }
+
+    try {
+      if (wasFlagged) {
+        await unflagPost(post.linkId);
+      } else {
+        await flagPost(post.linkId);
+      }
+    } catch {
+      // Revert optimism
+      setFlagged(wasFlagged);
+      setLiked(wasLiked);
+      if (!wasFlagged && wasLiked) {
+        setLikeCount((c) => c + 1);
+      }
+    } finally {
+      setFlagLoading(false);
+    }
+  }, [flagged, liked, flagLoading, likeLoading, post.linkId]);
 
   // ── Save ──
   const handleSave = useCallback(async () => {
@@ -314,18 +362,30 @@ export const PostCard = memo(function PostCard({
         {post.quotedPost && <QuotedPost post={post.quotedPost} />}
 
         {/* ── Actions ── */}
-        <div className="flex items-center gap-4 pt-3 mt-1 border-t border-border">
+        <div className="flex items-center gap-6 pt-3 mt-1 border-t border-border">
           <button
             onClick={handleLike}
             disabled={likeLoading}
-            className={`flex items-center gap-1.5 text-xs transition-colors ${
-              liked
-                ? "text-red-500 hover:text-red-400"
-                : "text-muted-foreground hover:text-foreground"
-            }`}
+            className={`flex items-center gap-1.5 text-xs transition-colors ${liked
+              ? "text-red-500 hover:text-red-400"
+              : "text-muted-foreground hover:text-foreground"
+              }`}
           >
             <Heart className={`w-4 h-4 ${liked ? "fill-current" : ""}`} />
             <span>{likeCount}</span>
+          </button>
+
+          {/* Mutually Exclusive Flag Button */}
+          <button
+            onClick={handleFlag}
+            disabled={flagLoading}
+            className={`flex items-center gap-1.5 text-xs transition-colors ${flagged
+              ? "text-orange-500 hover:text-orange-400"
+              : "text-muted-foreground hover:text-foreground"
+              }`}
+            title="Flag as inappropriate or false"
+          >
+            <TbFlag3 className={`w-4 h-4 ${flagged ? "fill-current" : ""}`} />
           </button>
 
           <button
@@ -347,11 +407,10 @@ export const PostCard = memo(function PostCard({
           <button
             onClick={handleSave}
             disabled={saveLoading}
-            className={`flex items-center gap-1.5 text-xs transition-colors ml-auto ${
-              saved
-                ? "text-primary hover:text-primary/80"
-                : "text-muted-foreground hover:text-foreground"
-            }`}
+            className={`flex items-center gap-1.5 text-xs transition-colors ml-auto ${saved
+              ? "text-primary hover:text-primary/80"
+              : "text-muted-foreground hover:text-foreground"
+              }`}
           >
             <TiBookmark className={`w-4 h-4 ${saved ? "fill-current" : ""}`} />
             <span>{saved ? "Saved" : "Save"}</span>

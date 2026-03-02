@@ -11,7 +11,8 @@ import React, {
 } from "react";
 import confetti from "canvas-confetti";
 import Link from "next/link";
-import { Check } from "lucide-react";
+import { Check, ArrowLeft } from "lucide-react";
+import { useRouter } from "next/navigation";
 import NumberFlow from "@number-flow/react";
 import { Slot } from "@radix-ui/react-slot";
 import { cva, type VariantProps } from "class-variance-authority";
@@ -20,7 +21,6 @@ import { twMerge } from "tailwind-merge";
 import { useAuth } from "@/lib/auth/AuthContext";
 import { useGeolocation, type RegionTier } from "@/lib/hooks/useGeolocation";
 import { GiLaurelCrown, GiFireGem } from "react-icons/gi";
-
 
 // --- UTILITY FUNCTIONS ---
 
@@ -277,16 +277,33 @@ export function PricingSection({
     title = "Simple, Transparent Pricing",
     description = "Choose the plan that's right for you. All plans include our core features and support.",
 }: PricingSectionProps) {
+
     const { regionTier } = useGeolocation();
     const [isMonthly, setIsMonthly] = useState(true);
 
+    const router = useRouter();
+    const { isAuthenticated, user } = useAuth();
+
+    const handleBack = () => {
+        if (!isAuthenticated) {
+            router.push("/");
+            return;
+        }
+
+        if (user?.role === "FACT_CHECKER") {
+            router.push("/fact-checker");
+        } else {
+            router.push("/user");
+        }
+    };
+
     return (
         <PricingContext.Provider value={{ isMonthly, setIsMonthly, currentRegion: regionTier }}>
-            <div
-                className="relative w-full bg-background dark:bg-neutral-950 py-8 sm:py-12"
-            >
+            <div className="relative w-full bg-background dark:bg-neutral-950 py-8 sm:py-12">
                 <InteractiveStarfield />
-                <div className="relative z-10 container mx-auto px-4 md:px-6 ">
+
+                <div className="relative z-10 container mx-auto px-4 md:px-6">
+
                     <div className="max-w-3xl mx-auto text-center space-y-4 mb-12">
                         <h2 className="text-2xl font-bold tracking-tighter sm:text-4xl bg-gradient-to-r from-gray-600 via-white to-gray-600 bg-clip-text text-transparent">
                             {title}
@@ -295,12 +312,26 @@ export function PricingSection({
                             {description}
                         </p>
                     </div>
+
                     <PricingToggle />
+
                     <div className="mt-10 flex flex-col md:flex-row justify-center items-start gap-6 max-w-2xl mx-auto">
                         {plans.map((plan, index) => (
                             <PricingCard key={index} plan={plan} index={index} />
                         ))}
                     </div>
+
+                    {/* ✅ BACK BUTTON ADDED HERE */}
+                    <div className="mt-12 flex justify-center">
+                        <button
+                            onClick={handleBack}
+                            className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
+                        >
+                            <ArrowLeft size={16} />
+                            Back
+                        </button>
+                    </div>
+
                 </div>
             </div>
         </PricingContext.Provider>
@@ -425,14 +456,20 @@ function PricingCard({ plan, index }: { plan: PricingPlan; index: number }) {
     };
     const currencyCode = currencyMap[currentRegion] || 'USD';
 
+    // Safety check - Free plan (activePrice === 0) shouldn't go to Stripe checkout
+    const isFreePlan = activePrice === 0;
+
     // When the user clicks Upgrade, construct the checkout URL with both the Plan ID and their Region Tier
     // so the backend can fetch the specific, localized plan
     const checkoutUrl = `/checkout?plan=${plan.id}&region=${currentRegion}`;
 
-    // If not authenticated, send them to login but pass the checkout URL so they return immediately after!
+    // Determine the route if they are already logged in (Free -> Dashboard, Pro -> Checkout)
+    const loggedInRoute = isFreePlan ? '/' : checkoutUrl; // Back to home/dashboard if free
+
+    // If not authenticated, send them to login but pass the target URL so they return immediately after!
     const targetHref = isAuthenticated
-        ? checkoutUrl
-        : `/login?redirect=${encodeURIComponent(checkoutUrl)}`;
+        ? loggedInRoute
+        : `/login?redirect=${encodeURIComponent(loggedInRoute)}`;
 
     return (
         <motion.div

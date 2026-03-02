@@ -27,24 +27,24 @@ const pointsClient = new PointsClient();
 const activityRepo = new ActivityRepository();
 const queueService = new QueueService(queueRepo);
 const activityService = new ActivityService(activityRepo);
-const postService = new PostService(postRepo, pointsClient, queueService, activityService, new UserClient());
-const factCheckService = new FactCheckService(factCheckRepo, postRepo, pointsClient, activityService);
+const userClient = new UserClient();
+const postService = new PostService(postRepo, pointsClient, queueService, activityService, userClient);
+const factCheckService = new FactCheckService(factCheckRepo, postRepo, pointsClient, activityService, userClient);
 const internalController = new InternalController(postService, factCheckService);
 const activityController = new ActivityController(activityService);
-const userClient = new UserClient();
 const queueController = new QueueController(queueService, userClient, pointsClient);
 
 // All internal routes require service token
 router.use(verifyInternalToken);
 
 // Routes
-router.get('/posts/:id', asyncHandler((req, res) => 
+router.get('/posts/:id', asyncHandler((req, res) =>
   internalController.getPost(req, res)
 ));
-router.patch('/posts/:id/status', asyncHandler((req, res) => 
+router.patch('/posts/:id/status', asyncHandler((req, res) =>
   internalController.updatePostStatus(req, res)
 ));
-router.post('/posts/:linkId/fact-checks', asyncHandler((req, res) => 
+router.post('/posts/:linkId/fact-checks', asyncHandler((req, res) =>
   internalController.saveFactCheck(req, res)
 ));
 

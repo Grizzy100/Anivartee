@@ -7,6 +7,9 @@ const envSchema = z.object({
   NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
   PORT: z.string().default('3004'),
   DATABASE_URL: z.string().min(1),
+  REDIS_HOST: z.string().optional(),
+  REDIS_PORT: z.coerce.number().optional(),
+  REDIS_PASSWORD: z.string().optional(),
   JWT_SECRET: z.string().min(32),
   INTERNAL_SERVICE_TOKEN: z.string().min(32),
 

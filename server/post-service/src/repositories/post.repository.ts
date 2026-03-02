@@ -267,19 +267,21 @@ export class PostRepository {
   async getUserStats(userId: string) {
     try {
       const activeFilter = { userId, ...NOT_DELETED };
-      const [postsCount, likesAgg, verifiedCount] = await Promise.all([
+      const [postsCount, likesAgg, verifiedCount, factChecksPerformed] = await Promise.all([
         prisma.link.count({ where: activeFilter }),
         prisma.link.aggregate({
           where: activeFilter,
           _sum: { totalLikes: true },
         }),
         prisma.link.count({ where: { ...activeFilter, status: 'VALIDATED' as any } }),
+        prisma.factCheck.count({ where: { factCheckerId: userId } }),
       ]);
 
       return {
         postsCount,
         totalLikesReceived: likesAgg._sum.totalLikes ?? 0,
         verifiedCount,
+        factChecksPerformed,
       };
     } catch (error: any) {
       logger.error('Database error in post.getUserStats:', error);
@@ -345,6 +347,39 @@ export class PostRepository {
     } catch (error: any) {
       // Hot-score update is non-critical — log but don't throw
       logger.error('Failed to recalculate hot score:', error);
+    }
+  }
+
+  /**
+   * Get an array of UTC dates (YYYY-MM-DD strings) for all non-deleted posts
+   * by the given user. Used for achievement computation.
+   */
+  async getPostDatesForUser(userId: string): Promise<string[]> {
+    try {
+      const posts = await prisma.link.findMany({
+        where: { userId, deletedAt: null },
+        select: { createdAt: true },
+        orderBy: { createdAt: 'asc' },
+      });
+
+      // Deduplicate dates (one post per day is enough for streak logic)
+      const uniqueDates = [...new Set(
+        posts.map(p => p.createdAt.toISOString().slice(0, 10)),
+      )];
+      return uniqueDates;
+    } catch (error: any) {
+      logger.error('Database error in post.getPostDatesForUser:', error);
+      return [];
+    }
+  }
+
+  /** Total number of active (non-deleted) posts for a user. */
+  async countUserPosts(userId: string): Promise<number> {
+    try {
+      return await prisma.link.count({ where: { userId, deletedAt: null } });
+    } catch (error: any) {
+      logger.error('Database error in post.countUserPosts:', error);
+      return 0;
     }
   }
 }

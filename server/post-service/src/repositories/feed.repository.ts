@@ -21,8 +21,9 @@ function feedInclude(userId: string | null) {
         likes: true,
         comments: true,
         views: true,
-        flags: true,
         shares: true,
+        // Note: flags count intentionally excluded to avoid conflict with
+        // the per-user flags relation include below
       },
     },
     // Per-user interaction state (empty array when no match)
@@ -38,6 +39,11 @@ function feedInclude(userId: string | null) {
           select: { id: true },
           take: 1,
         },
+        flags: {
+          where: { flaggerUserId: userId },
+          select: { id: true },
+          take: 1,
+        },
       }
       : {}),
   };
@@ -47,7 +53,7 @@ export class FeedRepository {
   async getHomeFeed(userId: string | null, page: number, pageSize: number) {
     try {
       const skip = (page - 1) * pageSize;
-      const where = { status: { in: [LinkStatus.VALIDATED, LinkStatus.PENDING, LinkStatus.UNDER_REVIEW] }, ...NOT_DELETED };
+      const where = { status: { in: [LinkStatus.VALIDATED, LinkStatus.PENDING, LinkStatus.UNDER_REVIEW, LinkStatus.DEBUNKED] }, ...NOT_DELETED };
 
       const [posts, total] = await Promise.all([
         prisma.link.findMany({

@@ -19,6 +19,29 @@ export interface LinkSource {
   url: string;
 }
 
+/** Fact-check data returned inside a feed post (the latest review only). */
+export interface FactCheckData {
+  id: string;
+  postId: string;
+  factCheckerId: string;
+  verdict: "VALIDATED" | "DEBUNKED";
+  header: string;
+  description: string | null;
+  referenceUrls: string[];
+  createdAt: string;
+  /** Enriched by backend enrichPostsWithUserData() — present in feed responses. */
+  factCheckerAuthor?: {
+    id: string;
+    username: string;
+    displayName: string | null;
+    avatarUrl: string | null;
+    role: string;
+    rankName: string;
+    rankLevel: number;
+    points: number;
+  };
+}
+
 /**
  * Mirrors the post-service `Link` model with optional enriched relations.
  */
@@ -39,6 +62,8 @@ export interface FeedPost {
   createdAt: string;
   updatedAt: string;
   sources: LinkSource[];
+  /** Latest fact-check (1 entry from feedInclude) */
+  factChecks?: FactCheckData[];
   /** Enriched by feed controller – absent in raw Link queries */
   author?: {
     id: string;
@@ -56,11 +81,14 @@ export interface FeedPost {
     comments: number;
     views: number;
     shares: number;
+    flags: number;
   };
   /** Current-user interaction flags (present when optionalAuth is used) */
   liked?: boolean;
   saved?: boolean;
+  flags?: any[]; // The array returned by Prisma feedInclude
 }
+
 
 export interface PaginatedPosts {
   posts: FeedPost[];

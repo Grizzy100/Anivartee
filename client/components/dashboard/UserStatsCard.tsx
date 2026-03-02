@@ -1,10 +1,12 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { FileText, Heart, ShieldCheck } from "lucide-react";
-import { getMyRank } from "@/lib/api/points";
+import { FileText, Heart, ShieldCheck, Zap } from "lucide-react";
+import { getMyRank, type UserRankData } from "@/lib/api/points";
 import { getUserStats, type UserStats } from "@/lib/api/post";
 import { useAuth } from "@/lib/auth/AuthContext";
+import { IoMdHelpCircleOutline } from "react-icons/io";
+import { useProductTour } from "@/lib/contexts/ProductTourContext";
 import type { DashboardRole } from "./types";
 
 interface UserStatsCardProps {
@@ -19,11 +21,14 @@ export function UserStatsCard({
   initials = "U",
 }: UserStatsCardProps) {
   const { user } = useAuth();
-  const [rankName, setRankName] = useState<string | null>(null);
+  const { startTour } = useProductTour();
+  const [rankData, setRankData] = useState<UserRankData | null>(null);
+  const rankName = rankData?.rankName ?? null;
   const [stats, setStats] = useState<UserStats>({
     postsCount: 0,
     totalLikesReceived: 0,
     verifiedCount: 0,
+    factChecksPerformed: 0,
   });
   const roleLabel = role === "factchecker" ? "Fact-Checker" : "User";
 
@@ -32,11 +37,12 @@ export function UserStatsCard({
     let cancelled = false;
     getMyRank()
       .then((data) => {
-        if (!cancelled) setRankName(data.rankName);
+        if (!cancelled) setRankData(data);
       })
       .catch(() => {
         if (!cancelled) {
-          setRankName(role === "factchecker" ? "Apprentice" : "Novice");
+          // Provide a sensible fallback on API error
+          setRankData(null);
         }
       });
     return () => { cancelled = true; };
@@ -67,12 +73,20 @@ export function UserStatsCard({
             {initials}
           </span>
         </div>
-        <div className="min-w-0">
-          <p className="text-sm font-semibold text-foreground truncate">
-            {displayName}
-          </p>
+        <div className="min-w-0 flex-1">
+          <div className="flex items-center justify-between">
+            <p className="text-sm font-semibold text-foreground truncate">
+              {displayName}
+            </p>
+            <button
+              onClick={startTour}
+              className="text-muted-foreground hover:text-foreground transition-colors"
+              title="Help Tour"
+            >
+            </button>
+          </div>
           <p className="text-xs text-muted-foreground">
-            <span className="font-display text-[10px] tracking-wide">
+            <span className="font-display text-[10px] tracking-wide" id="tour-user-rank">
               {rankName ?? "…"}
             </span>
             <span className="mx-1.5 text-border">|</span>
@@ -93,27 +107,55 @@ export function UserStatsCard({
             Posts
           </p>
         </div>
-        <div className="bg-secondary/50 rounded-md px-3 py-2 text-center">
-          <div className="flex items-center justify-center gap-1 mb-0.5">
-            <Heart className="w-3.5 h-3.5 text-muted-foreground" />
+        {role === "factchecker" ? (
+          <div className="bg-secondary/50 rounded-md px-3 py-2 text-center">
+            <div className="flex items-center justify-center gap-1 mb-0.5">
+              <ShieldCheck className="w-3.5 h-3.5 text-muted-foreground" />
+            </div>
+            <p className="font-display text-sm font-bold text-foreground">
+              {stats.factChecksPerformed}
+            </p>
+            <p className="text-[10px] text-muted-foreground uppercase tracking-wider">
+              Fact-Checks
+            </p>
           </div>
-          <p className="font-display text-sm font-bold text-foreground">
-            {stats.totalLikesReceived}
-          </p>
-          <p className="text-[10px] text-muted-foreground uppercase tracking-wider">
-            Likes
-          </p>
-        </div>
+        ) : (
+          <div className="bg-secondary/50 rounded-md px-3 py-2 text-center">
+            <div className="flex items-center justify-center gap-1 mb-0.5">
+              <Heart className="w-3.5 h-3.5 text-muted-foreground" />
+            </div>
+            <p className="font-display text-sm font-bold text-foreground">
+              {stats.totalLikesReceived}
+            </p>
+            <p className="text-[10px] text-muted-foreground uppercase tracking-wider">
+              Likes
+            </p>
+          </div>
+        )}
       </div>
 
-      {role === "factchecker" && (
-        <div className="mt-2 bg-emerald-600/10 rounded-md px-3 py-1.5 flex items-center gap-2">
-          <ShieldCheck className="w-4 h-4 text-emerald-600" />
-          <span className="text-xs text-emerald-600 font-medium">
-            {stats.verifiedCount} Verified
+      {/* Points + Rank Level strip */}
+      {rankData && (
+        <div className="mt-2 flex items-center justify-between bg-secondary/40 rounded-md px-3 py-1.5">
+          <div className="flex items-center gap-1.5">
+            <Zap className="w-3.5 h-3.5 text-amber-400" />
+            <span className="text-xs font-semibold text-foreground">
+              {rankData.points.toLocaleString()} pts
+            </span>
+          </div>
+          <span
+            className={`text-[9px] px-1.5 py-0.5 rounded border font-semibold uppercase tracking-wider ${rankData.rankLevel >= 5
+              ? "text-amber-400 bg-amber-400/10 border-amber-400/20"
+              : rankData.rankLevel >= 3
+                ? "text-violet-400 bg-violet-400/10 border-violet-400/20"
+                : "text-sky-400 bg-sky-400/10 border-sky-400/20"
+              }`}
+          >
+            Lvl {rankData.rankLevel} · {rankData.rankName}
           </span>
         </div>
       )}
+
     </div>
   );
 }

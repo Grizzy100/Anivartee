@@ -115,7 +115,7 @@ export function CalendarWidget({ className }: { className?: string }) {
   const selectedActivity = details[selectedKey];
 
   return (
-    <div className={className}>
+    <div id="tour-calendar" className={className}>
       <Calendar
         selected={selectedDate}
         onSelect={handleSelect}

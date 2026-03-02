@@ -1,6 +1,7 @@
-//server\user-service\src\middlewares\rateLimit.middleware.ts
-import rateLimit from 'express-rate-limit';
+import rateLimit, { ipKeyGenerator } from 'express-rate-limit';
+import RedisStore from 'rate-limit-redis';
 import { CONSTANTS } from '../config/constants.js';
+import { redis } from '../utils/redis.js';
 
 export const generalLimiter = rateLimit({
   windowMs: CONSTANTS.RATE_LIMIT_WINDOW_MS,
@@ -11,7 +12,13 @@ export const generalLimiter = rateLimit({
     code: 'RATE_LIMIT_EXCEEDED'
   },
   standardHeaders: true,
-  legacyHeaders: false
+  legacyHeaders: false,
+  store: new (RedisStore as any)({
+    // @ts-expect-error - Expected sendCommand to be defined
+    sendCommand: (...args: string[]) => redis.call(...args),
+  }),
+  passOnStoreError: true,
+  keyGenerator: (req) => `user-service:rl:general:${ipKeyGenerator(req.ip ?? '')}`,
 });
 
 export const authLimiter = rateLimit({
@@ -24,5 +31,11 @@ export const authLimiter = rateLimit({
   },
   standardHeaders: true,
   legacyHeaders: false,
-  skipSuccessfulRequests: true
+  skipSuccessfulRequests: true,
+  store: new (RedisStore as any)({
+    // @ts-expect-error - Expected sendCommand to be defined
+    sendCommand: (...args: string[]) => redis.call(...args),
+  }),
+  passOnStoreError: true,
+  keyGenerator: (req) => `user-service:rl:auth:${ipKeyGenerator(req.ip ?? '')}`,
 });

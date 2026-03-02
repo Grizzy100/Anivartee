@@ -3,6 +3,7 @@ import { Router } from 'express';
 import { FeedController } from '../controllers/feed.controller.js';
 import { FeedService } from '../services/feed.service.js';
 import { FeedRepository } from '../repositories/feed.repository.js';
+import { PostRepository } from '../repositories/post.repository.js';
 import { UserClient } from '../services/clients/user.client.js';
 import { PointsClient } from '../services/clients/points.client.js';
 import { optionalAuth } from '../middlewares/auth.middleware.js';
@@ -12,9 +13,10 @@ const router = Router();
 
 // Initialize dependencies
 const feedRepo = new FeedRepository();
+const postRepo = new PostRepository();
 const userClient = new UserClient();
 const pointsClient = new PointsClient();
-const feedService = new FeedService(feedRepo, userClient, pointsClient);
+const feedService = new FeedService(feedRepo, userClient, pointsClient, postRepo);
 const feedController = new FeedController(feedService);
 
 // Routes

@@ -4,6 +4,7 @@ import { Bebas_Neue, Oxanium, Orbitron } from "next/font/google";
 import type { Metadata } from "next";
 import { AuthProvider } from "@/lib/auth/AuthContext";
 import { ThemeProvider } from "next-themes";
+import { GlobalProductTourProvider } from "@/components/ui/global-product-tour";
 
 const bebas = Bebas_Neue({
   subsets: ["latin"],
@@ -42,7 +43,9 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          <AuthProvider>{children}</AuthProvider>
+          <AuthProvider>
+            <GlobalProductTourProvider>{children}</GlobalProductTourProvider>
+          </AuthProvider>
         </ThemeProvider>
       </body>
     </html>

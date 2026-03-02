@@ -8,16 +8,16 @@ import { getParam } from '../utils/request.js'; // ✅ ADD THIS
 import type { AuthRequest } from '../types/auth.types.js';
 
 export class InteractionController {
-  constructor(private interactionService: InteractionService) {}
+  constructor(private interactionService: InteractionService) { }
 
   // ============= POST LIKES =============
   async likePost(req: AuthRequest, res: Response) {
     try {
       const linkId = getParam(req.params.linkId); // ✅ FIXED
       const userId = req.user!.userId;
-      
+
       await this.interactionService.likePost(linkId, userId);
-      
+
       return ResponseUtil.success(res, { message: 'Post liked successfully' });
     } catch (error: any) {
       logger.error('Like post controller error:', error);
@@ -29,12 +29,43 @@ export class InteractionController {
     try {
       const linkId = getParam(req.params.linkId); // ✅ FIXED
       const userId = req.user!.userId;
-      
+
       await this.interactionService.unlikePost(linkId, userId);
-      
+
       return ResponseUtil.success(res, { message: 'Post unliked successfully' });
     } catch (error: any) {
       logger.error('Unlike post controller error:', error);
+      throw error;
+    }
+  }
+
+  // ============= POST FLAGS =============
+  async flagPost(req: AuthRequest, res: Response) {
+    try {
+      const linkId = getParam(req.params.linkId);
+      const userId = req.user!.userId;
+      const role = req.user!.role;
+      const rankLevel = (req.user as any).rankLevel || 0;
+
+      await this.interactionService.flagPost(linkId, userId, role, rankLevel);
+
+      return ResponseUtil.success(res, { message: 'Post flagged successfully' });
+    } catch (error: any) {
+      logger.error('Flag post controller error:', error);
+      throw error;
+    }
+  }
+
+  async unflagPost(req: AuthRequest, res: Response) {
+    try {
+      const linkId = getParam(req.params.linkId);
+      const userId = req.user!.userId;
+
+      await this.interactionService.unflagPost(linkId, userId);
+
+      return ResponseUtil.success(res, { message: 'Post unflagged successfully' });
+    } catch (error: any) {
+      logger.error('Unflag post controller error:', error);
       throw error;
     }
   }
@@ -44,9 +75,9 @@ export class InteractionController {
     try {
       const commentId = getParam(req.params.commentId); // ✅ FIXED
       const userId = req.user!.userId;
-      
+
       await this.interactionService.likeComment(commentId, userId);
-      
+
       return ResponseUtil.success(res, { message: 'Comment liked successfully' });
     } catch (error: any) {
       logger.error('Like comment controller error:', error);
@@ -58,9 +89,9 @@ export class InteractionController {
     try {
       const commentId = getParam(req.params.commentId); // ✅ FIXED
       const userId = req.user!.userId;
-      
+
       await this.interactionService.unlikeComment(commentId, userId);
-      
+
       return ResponseUtil.success(res, { message: 'Comment unliked successfully' });
     } catch (error: any) {
       logger.error('Unlike comment controller error:', error);
@@ -73,9 +104,9 @@ export class InteractionController {
     try {
       const linkId = getParam(req.params.linkId); // ✅ FIXED
       const userId = req.user!.userId;
-      
+
       await this.interactionService.savePost(linkId, userId);
-      
+
       return ResponseUtil.success(res, { message: 'Post saved successfully' });
     } catch (error: any) {
       logger.error('Save post controller error:', error);
@@ -87,9 +118,9 @@ export class InteractionController {
     try {
       const linkId = getParam(req.params.linkId); // ✅ FIXED
       const userId = req.user!.userId;
-      
+
       await this.interactionService.unsavePost(linkId, userId);
-      
+
       return ResponseUtil.success(res, { message: 'Post unsaved successfully' });
     } catch (error: any) {
       logger.error('Unsave post controller error:', error);
@@ -101,10 +132,10 @@ export class InteractionController {
     try {
       const userId = req.user!.userId;
       const page = parseInt(req.query.page as string) || 1;
-const pageSize = Math.min(parseInt(req.query.pageSize as string) || 20, 100);
-      
+      const pageSize = Math.min(parseInt(req.query.pageSize as string) || 20, 100);
+
       const result = await this.interactionService.getSavedPosts(userId, page, pageSize);
-      
+
       return ResponseUtil.paginated(
         res,
         result.posts,
@@ -124,9 +155,9 @@ const pageSize = Math.min(parseInt(req.query.pageSize as string) || 20, 100);
       const linkId = getParam(req.params.linkId); // ✅ FIXED
       const userId = req.user?.userId || null;
       const validatedData = createViewSchema.parse(req.body);
-      
+
       await this.interactionService.trackView(linkId, userId, validatedData.sessionId);
-      
+
       return ResponseUtil.success(res, { message: 'View tracked successfully' });
     } catch (error: any) {
       logger.error('Track view controller error:', error);
@@ -140,17 +171,17 @@ const pageSize = Math.min(parseInt(req.query.pageSize as string) || 20, 100);
       const linkId = getParam(req.params.linkId); // ✅ FIXED
       const userId = req.user!.userId;
       const validatedData = createShareSchema.parse(req.body);
-      
+
       await this.interactionService.sharePost(linkId, userId, validatedData.platform);
-      
+
       return ResponseUtil.success(res, { message: 'Share tracked successfully' });
     } catch (error: any) {
       logger.error('Share post controller error:', error);
-      
+
       if (error.name === 'ZodError') {
         return ResponseUtil.error(res, 'Validation failed', 400, 'VALIDATION_ERROR');
       }
-      
+
       throw error;
     }
   }

@@ -15,6 +15,8 @@ interface FeedContentProps {
   currentUserId?: string;
   /** Callback when a post is deleted */
   onPostDeleted?: (postId: string) => void;
+  /** Suppress fact-check verdict cards (use in My Posts for regular users) */
+  hideFactCheckCards?: boolean;
 }
 
 /**
@@ -31,6 +33,7 @@ export function FeedContent({
   showStatus,
   currentUserId,
   onPostDeleted,
+  hideFactCheckCards,
 }: FeedContentProps) {
   if (loading) {
     return (
@@ -69,6 +72,7 @@ export function FeedContent({
       showStatus={showStatus}
       currentUserId={currentUserId}
       onPostDeleted={onPostDeleted}
+      hideFactCheckCards={hideFactCheckCards}
     />
   );
 }

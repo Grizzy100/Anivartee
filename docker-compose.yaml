@@ -1,5 +1,14 @@
 name: anivartee
 services:
+  redis:
+    image: redis:7-alpine
+    container_name: redis
+    command: redis-server --requirepass your_strong_password
+    ports:
+      - "6379:6379"
+    restart: unless-stopped
+    networks: [default]
+
   user-service:
     build: ./server/user-service
     container_name: user-service
@@ -11,6 +20,8 @@ services:
     volumes:
       - ./server/user-service/src:/usr/src/app/src
       - /usr/src/app/node_modules
+    depends_on:
+      - redis
     networks: [default]
 
   points-service:
@@ -26,6 +37,7 @@ services:
       - /usr/src/app/node_modules
     depends_on:
       - user-service
+      - redis
     networks: [default]
 
   post-service:
@@ -42,4 +54,23 @@ services:
     depends_on:
       - user-service
       - points-service
+      - redis
     networks: [default]
+
+  payment-service:
+    build: ./server/payment-service
+    container_name: payment-service
+    ports:
+      - "3005:3005"
+    env_file: ./server/payment-service/.env.docker
+    environment:
+      - NODE_ENV=development
+    volumes:
+      - ./server/payment-service/src:/usr/src/app/src
+      - /usr/src/app/node_modules
+    depends_on:
+      - user-service
+      - redis
+    networks: [default]
+
+

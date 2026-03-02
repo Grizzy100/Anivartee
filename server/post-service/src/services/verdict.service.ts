@@ -8,6 +8,7 @@ import { ActivityService } from './activity.service.js';
 import { SubmitVerdictInput, SaveDraftInput } from '../validators/verdict.schema.js';
 import { NotFoundError, ConflictError, AuthorizationError } from '../utils/errors.js';
 import { logger } from '../utils/logger.js';
+import { redis } from '../utils/redis.js';
 
 export class VerdictService {
   constructor(
@@ -70,6 +71,16 @@ export class VerdictService {
     // 6. Complete the claim and queue item
     await this.claimService.completeClaim(postId, factCheckerId);
     await this.queueService.markCompleted(postId);
+
+    // 6b. Invalidate the Feed cache so the updated status propagates to clients
+    try {
+      const keys = await redis.keys('feed:*');
+      if (keys.length > 0) {
+        await redis.unlink(...keys);
+      }
+    } catch (err) {
+      logger.error('Failed to clear feed cache on verdict submission:', err);
+    }
 
     // 7. Delete any saved draft (cleanup)
     this.draftRepo.deleteByPostAndChecker(postId, factCheckerId)

@@ -16,6 +16,8 @@ interface DashboardTopBarProps {
 }
 
 // ─── Component ───────────────────────────────────────────────────────────────
+import { IoMdHelpCircleOutline } from "react-icons/io";
+import { useProductTour } from "@/lib/contexts/ProductTourContext";
 
 /**
  * Top bar that sits above the feed — intentionally designed to *not* look
@@ -30,6 +32,7 @@ export function DashboardTopBar({
   const [query, setQuery] = useState("");
   const [searchFocused, setSearchFocused] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
+  const { startTour } = useProductTour();
   const debounceRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
   // Debounced search
@@ -69,25 +72,37 @@ export function DashboardTopBar({
             <p className="text-sm text-muted-foreground mt-1">{subtitle}</p>
           </div>
 
-          {/* Create Post */}
-          <button
-            onClick={() => setModalOpen(true)}
-            className="flex items-center gap-1.5 shrink-0 px-3 py-1.5 text-xs font-semibold rounded-md
-              bg-primary/10 text-primary border border-primary/20
-              hover:bg-primary/20 hover:border-primary/30
-              transition-all duration-200"
-          >
-            <Plus className="w-3.5 h-3.5" />
-            <span>New Post</span>
-          </button>
+          <div className="flex items-center gap-3">
+            {/* Help Tour */}
+            <button
+              onClick={startTour}
+              className="flex items-center justify-center w-8 h-8 rounded-full text-muted-foreground hover:bg-secondary hover:text-foreground transition-all duration-200"
+              title="Help Tour"
+              id="tour-help-button"
+            >
+              <IoMdHelpCircleOutline className="w-5 h-5" />
+            </button>
+
+            {/* Create Post */}
+            <button
+              onClick={() => setModalOpen(true)}
+              className="flex items-center gap-1.5 shrink-0 px-3 py-1.5 text-xs font-semibold rounded-md
+                bg-primary/10 text-primary border border-primary/20
+                hover:bg-primary/20 hover:border-primary/30
+                transition-all duration-200"
+              id="tour-post-button"
+            >
+              <Plus className="w-3.5 h-3.5" />
+              <span>New Post</span>
+            </button>
+          </div>
         </div>
 
         {/* Search — ghost-style, blends with feed */}
         <div className="relative">
           <Search
-            className={`absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 transition-colors ${
-              searchFocused ? "text-primary" : "text-muted-foreground/50"
-            }`}
+            className={`absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 transition-colors ${searchFocused ? "text-primary" : "text-muted-foreground/50"
+              }`}
           />
           <input
             type="text"
@@ -96,11 +111,10 @@ export function DashboardTopBar({
             onFocus={() => setSearchFocused(true)}
             onBlur={() => setSearchFocused(false)}
             placeholder="Search posts..."
-            className={`w-full h-9 pl-10 pr-8 text-sm bg-transparent border rounded-md outline-none transition-all duration-200 ${
-              searchFocused
+            className={`w-full h-9 pl-10 pr-8 text-sm bg-transparent border rounded-md outline-none transition-all duration-200 ${searchFocused
                 ? "border-primary/30 text-foreground placeholder:text-muted-foreground/60"
                 : "border-border/50 text-foreground placeholder:text-muted-foreground/40"
-            }`}
+              }`}
           />
           {query && (
             <button

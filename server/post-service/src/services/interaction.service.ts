@@ -21,7 +21,7 @@ export class InteractionService {
     private commentRepo: CommentRepository,
     private flagRepo: FlagRepository,
     private pointsClient: PointsClient
-  ) {}
+  ) { }
 
   // ============= POST LIKES =============
 
@@ -34,6 +34,14 @@ export class InteractionService {
 
     if (!post) throw new NotFoundError('Post not found');
     if (existingLike) throw new ConflictError('You have already liked this post');
+
+    // Mutually exclusive logic: Remove flag if it exists
+    const existingFlag = await this.interactionRepo.findFlag(linkId, userId);
+    if (existingFlag) {
+      await this.interactionRepo.deleteFlag(linkId, userId);
+      logger.info(`User ${userId} liked post ${linkId} (removed existing flag)`);
+      // We don't recalculate the flag score yet; the like creation below handles the overall state re-evaluation
+    }
 
     // Create like + bump counter
     await this.interactionRepo.createLike(linkId, userId);
@@ -86,6 +94,68 @@ export class InteractionService {
   async hasUserLiked(linkId: string, userId: string): Promise<boolean> {
     const like = await this.interactionRepo.findLike(linkId, userId);
     return !!like;
+  }
+
+  // ============= POST FLAGS =============
+
+  async flagPost(linkId: string, userId: string, role: string, rankLevel: number) {
+    const [post, existingFlag] = await Promise.all([
+      this.postRepo.findById(linkId),
+      this.interactionRepo.findFlag(linkId, userId),
+    ]);
+
+    if (!post) throw new NotFoundError('Post not found');
+    if (existingFlag) throw new ConflictError('You have already flagged this post');
+
+    // Mutually exclusive logic: Remove like if it exists
+    const existingLike = await this.interactionRepo.findLike(linkId, userId);
+    if (existingLike) {
+      await this.interactionRepo.deleteLike(linkId, userId);
+      await this.postRepo.decrementLikes(linkId);
+      logger.info(`User ${userId} flagged post ${linkId} (removed existing like)`);
+    }
+
+    // Create flag
+    await this.interactionRepo.createFlag(linkId, userId, role, rankLevel);
+
+    // Check if should become FLAGGED
+    const { shouldBeFlagged } = await this.flagRepo.calculateWeightedFlagScore(linkId);
+    if (shouldBeFlagged && post.status !== 'FLAGGED') {
+      await this.postRepo.updateStatus(linkId, 'FLAGGED');
+      logger.info(`Post ${linkId} changed to FLAGGED (flags increased)`);
+    }
+
+    // Fire-and-forget
+    this.postRepo.recalculateHotScore(linkId)
+      .catch(err => logger.error('Failed to recalculate hot score:', err));
+
+    logger.info(`User ${userId} flagged post ${linkId}`);
+  }
+
+  async unflagPost(linkId: string, userId: string) {
+    const [post, existingFlag] = await Promise.all([
+      this.postRepo.findById(linkId),
+      this.interactionRepo.findFlag(linkId, userId),
+    ]);
+
+    if (!post) throw new NotFoundError('Post not found');
+    if (!existingFlag) throw new NotFoundError('You have not flagged this post');
+
+    await this.interactionRepo.deleteFlag(linkId, userId);
+
+    // Revert FLAGGED → PENDING if flags no longer outweigh likes
+    if (post.status === 'FLAGGED') {
+      const { shouldBeFlagged } = await this.flagRepo.calculateWeightedFlagScore(linkId);
+      if (!shouldBeFlagged) {
+        await this.postRepo.updateStatus(linkId, 'PENDING');
+        logger.info(`Post ${linkId} reverted to PENDING (flags decreased)`);
+      }
+    }
+
+    this.postRepo.recalculateHotScore(linkId)
+      .catch(err => logger.error('Failed to recalculate hot score:', err));
+
+    logger.info(`User ${userId} unflagged post ${linkId}`);
   }
 
   // ============= COMMENT LIKES =============

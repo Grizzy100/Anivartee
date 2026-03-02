@@ -49,8 +49,19 @@ const EMPTY_STATE: QueueState = {
 
 // ─── Component ───────────────────────────────────────────────────────────────
 
+import { IoMdHelpCircleOutline } from "react-icons/io";
+import { useProductTour } from "@/lib/contexts/ProductTourContext";
+
 export default function ModerationPage() {
   const [tabIndex, setTabIndex] = useState(0);
+  const { startTour, activeStep } = useProductTour();
+
+  // Watch the Product Tour step. Step index 2 is "Submitting a Verdict" which takes place on the Claimed tab.
+  useEffect(() => {
+    if (activeStep === 2) {
+      setTabIndex(1); // Auto-switch to Claimed tab
+    }
+  }, [activeStep]);
 
   // ── Queue tab state ──
   const [queue, setQueue] = useState<QueueState>({ ...EMPTY_STATE });
@@ -186,25 +197,37 @@ export default function ModerationPage() {
   return (
     <div className="w-full">
       {/* Header */}
-      <div className="mb-5">
-        <div className="flex items-center gap-2">
-          <ShieldAlert className="w-5 h-5 text-primary" />
-          <h2 className="font-display text-lg font-bold tracking-wide text-foreground">
-            Moderation
-          </h2>
+      <div className="mb-5 flex items-center justify-between">
+        <div>
+          <div className="flex items-center gap-2">
+            <ShieldAlert className="w-5 h-5 text-primary" />
+            <h2 className="font-display text-lg font-bold tracking-wide text-foreground">
+              Moderation
+            </h2>
+          </div>
+          <p className="text-sm text-muted-foreground mt-1 ml-7">
+            Review and verify community submissions
+          </p>
         </div>
-        <p className="text-sm text-muted-foreground mt-1 ml-7">
-          Review and verify community submissions
-        </p>
+
+        <button
+          onClick={startTour}
+          className="flex items-center justify-center w-8 h-8 rounded-full text-muted-foreground hover:bg-secondary hover:text-foreground transition-all duration-200"
+          title="Help Tour"
+        >
+          <IoMdHelpCircleOutline className="w-5 h-5" />
+        </button>
       </div>
 
       {/* Tabs */}
-      <SlideTabs
-        tabs={[...TABS]}
-        activeIndex={tabIndex}
-        onActiveChange={setTabIndex}
-        className="mb-5"
-      />
+      <div id="tour-moderation-tabs" className="w-fit">
+        <SlideTabs
+          tabs={[...TABS]}
+          activeIndex={tabIndex}
+          onActiveChange={setTabIndex}
+          className="mb-5"
+        />
+      </div>
 
       {/* Content */}
       {current.loading ? (
@@ -250,6 +273,7 @@ export default function ModerationPage() {
                   {tabIndex === 0 ? (
                     <>
                       <button
+                        id="tour-claim-btn"
                         onClick={() => handleClaim(postId)}
                         disabled={claimingPostId === postId}
                         className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-md bg-primary text-primary-foreground hover:bg-primary/90 transition-colors disabled:opacity-50"
@@ -269,6 +293,7 @@ export default function ModerationPage() {
                   ) : (
                     <>
                       <button
+                        id="tour-validate-btn"
                         onClick={() =>
                           setVerdictTarget({ postId, title: post.title })
                         }
@@ -277,6 +302,7 @@ export default function ModerationPage() {
                         Validate
                       </button>
                       <button
+                        id="tour-debunk-btn"
                         onClick={() =>
                           setVerdictTarget({ postId, title: post.title })
                         }

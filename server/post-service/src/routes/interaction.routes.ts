@@ -28,39 +28,47 @@ const interactionService = new InteractionService(
 const interactionController = new InteractionController(interactionService);
 
 // Post likes
-router.post('/posts/:linkId/like', authenticate, asyncHandler((req, res) => 
+router.post('/posts/:linkId/like', authenticate, asyncHandler((req, res) =>
   interactionController.likePost(req, res)
 ));
-router.delete('/posts/:linkId/like', authenticate, asyncHandler((req, res) => 
+router.delete('/posts/:linkId/like', authenticate, asyncHandler((req, res) =>
   interactionController.unlikePost(req, res)
 ));
 
+// Post flags
+router.post('/posts/:linkId/flag', authenticate, asyncHandler((req, res) =>
+  interactionController.flagPost(req, res)
+));
+router.delete('/posts/:linkId/flag', authenticate, asyncHandler((req, res) =>
+  interactionController.unflagPost(req, res)
+));
+
 // Comment likes
-router.post('/comments/:commentId/like', authenticate, asyncHandler((req, res) => 
+router.post('/comments/:commentId/like', authenticate, asyncHandler((req, res) =>
   interactionController.likeComment(req, res)
 ));
-router.delete('/comments/:commentId/like', authenticate, asyncHandler((req, res) => 
+router.delete('/comments/:commentId/like', authenticate, asyncHandler((req, res) =>
   interactionController.unlikeComment(req, res)
 ));
 
 // Saves
-router.post('/posts/:linkId/save', authenticate, asyncHandler((req, res) => 
+router.post('/posts/:linkId/save', authenticate, asyncHandler((req, res) =>
   interactionController.savePost(req, res)
 ));
-router.delete('/posts/:linkId/save', authenticate, asyncHandler((req, res) => 
+router.delete('/posts/:linkId/save', authenticate, asyncHandler((req, res) =>
   interactionController.unsavePost(req, res)
 ));
-router.get('/saved', authenticate, asyncHandler((req, res) => 
+router.get('/saved', authenticate, asyncHandler((req, res) =>
   interactionController.getSavedPosts(req, res)
 ));
 
 // Views
-router.post('/posts/:linkId/view', optionalAuth, asyncHandler((req, res) => 
+router.post('/posts/:linkId/view', optionalAuth, asyncHandler((req, res) =>
   interactionController.trackView(req, res)
 ));
 
 // Shares
-router.post('/posts/:linkId/share', authenticate, asyncHandler((req, res) => 
+router.post('/posts/:linkId/share', authenticate, asyncHandler((req, res) =>
   interactionController.sharePost(req, res)
 ));
 

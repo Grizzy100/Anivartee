@@ -1,5 +1,6 @@
 // Shared types for dashboard components
 // Used across both user and fact-checker dashboards
+import type { FactCheckData } from "@/lib/api/feed";
 
 export interface PostAuthorDisplay {
   name: string;
@@ -29,6 +30,9 @@ export interface PostData {
   liked: boolean;
   /** Whether the current user has saved/bookmarked this post. */
   saved: boolean;
+  flagged?: boolean;
+  /** Latest attached fact-check result (VALIDATED or DEBUNKED posts only) */
+  factChecks?: FactCheckData[];
   status?: "verified" | "under-review" | "pending" | "debunked" | "flagged";
   /** Optional quoted / referenced post (for quote-posts) */
   quotedPost?: QuotedPostData | null;

@@ -62,6 +62,13 @@ function linkStatusToDisplay(
 export function feedPostToPostData(p: FeedPost): PostData {
   const name = p.author?.displayName || p.author?.username || "Unknown";
 
+  // Use the server-side LinkStatus as the single source of truth.
+  // The fact-check verdict is shown separately via FactCheckPostCard; overriding
+  // the status here caused filter mismatches (e.g. a PENDING post that has a
+  // fact-check entry being displayed as "verified" while the server returned it
+  // under the PENDING filter).
+  const derivedStatus = linkStatusToDisplay(p.status);
+
   return {
     id: p.id,
     linkId: p.id,
@@ -81,10 +88,12 @@ export function feedPostToPostData(p: FeedPost): PostData {
     likes: p._count?.likes ?? p.totalLikes ?? 0,
     comments: p._count?.comments ?? 0,
     shares: p._count?.shares ?? 0,
-    flags: 0,
+    flags: p._count?.flags ?? 0,
     liked: p.liked ?? false,
+    flagged: p.flags && p.flags.length > 0,
     saved: p.saved ?? false,
-    status: linkStatusToDisplay(p.status),
+    factChecks: p.factChecks ?? [],
+    status: derivedStatus,
   };
 }
 
@@ -127,7 +136,9 @@ export function queueItemToPostData(item: ModerationQueueItem): PostData {
     likes: post?._count?.likes ?? post?.totalLikes ?? 0,
     comments: post?._count?.comments ?? 0,
     shares: post?._count?.shares ?? 0,
+    flags: post?._count?.flags ?? 0,
     liked: post?.liked ?? false,
+    flagged: post?.flags && post?.flags.length > 0,
     saved: post?.saved ?? false,
     status: queueStatusToDisplay(item.status),
   };

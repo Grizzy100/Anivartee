@@ -1,0 +1,18 @@
+src/controllers/entitlements.controller.ts(11,7): error TS2345: Argument of type 'string | string[]' is not assignable to parameter of type 'string'.
+  Type 'string[]' is not assignable to type 'string'.
+src/controllers/internal.controller.ts(11,68): error TS2345: Argument of type 'string | string[]' is not assignable to parameter of type 'string'.
+  Type 'string[]' is not assignable to type 'string'.
+src/services/providers/stripePaymentProvider.ts(30,26): error TS2339: Property 'subscription' does not exist on type 'Invoice'.
+src/services/providers/stripePaymentProvider.ts(31,23): error TS2339: Property 'subscription' does not exist on type 'Invoice'.
+src/services/providers/stripePaymentProvider.ts(32,23): error TS2339: Property 'subscription' does not exist on type 'Invoice'.
+src/services/providers/stripePaymentProvider.ts(53,26): error TS2339: Property 'subscription' does not exist on type 'Invoice'.
+src/services/providers/stripePaymentProvider.ts(54,23): error TS2339: Property 'subscription' does not exist on type 'Invoice'.
+src/services/providers/stripePaymentProvider.ts(55,23): error TS2339: Property 'subscription' does not exist on type 'Invoice'.
+src/services/subscription.service.ts(59,35): error TS2339: Property 'current_period_start' does not exist on type 'Response<Subscription>'.
+src/services/subscription.service.ts(60,28): error TS2339: Property 'current_period_start' does not exist on type 'Response<Subscription>'.
+src/services/subscription.service.ts(62,33): error TS2339: Property 'current_period_end' does not exist on type 'Response<Subscription>'.
+src/services/subscription.service.ts(63,28): error TS2339: Property 'current_period_end' does not exist on type 'Response<Subscription>'.
+src/services/subscription.service.ts(152,35): error TS2339: Property 'current_period_start' does not exist on type 'Response<Subscription>'.
+src/services/subscription.service.ts(153,28): error TS2339: Property 'current_period_start' does not exist on type 'Response<Subscription>'.
+src/services/subscription.service.ts(155,33): error TS2339: Property 'current_period_end' does not exist on type 'Response<Subscription>'.
+src/services/subscription.service.ts(156,28): error TS2339: Property 'current_period_end' does not exist on type 'Response<Subscription>'.

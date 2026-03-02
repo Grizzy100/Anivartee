@@ -1,0 +1,8 @@
+{
+  "STRIPE_PRICE_ID_IN": "price_1T5uROLbKYkvAOCnUOQYYNGm",
+  "STRIPE_PRICE_ID_SEA": "price_1T5uROLbKYkvAOCncn7gFvEy",
+  "STRIPE_PRICE_ID_GLOBAL": "price_1T5uRPLbKYkvAOCnm4Wefjez",
+  "STRIPE_PRICE_ID_EU": "price_1T5uRPLbKYkvAOCnfMqtP6gZ",
+  "STRIPE_PRICE_ID_JP": "price_1T5uRQLbKYkvAOCnqykPA94M",
+  "STRIPE_PRICE_ID_ME": "price_1T5uRQLbKYkvAOCnupRpoKuY"
+}

@@ -2,7 +2,6 @@ import { PointsRepository } from '../repositories/points.repository.js';
 import { UserClient } from './clients/user.client.js';
 import {
   USER_RANKS, CHECKER_RANKS,
-  ORDERED_USER_RANKS, ORDERED_CHECKER_RANKS,
   RankConfig
 } from '../config/ranks.js';
 import { CONSTANTS } from '../config/constants.js';
@@ -35,27 +34,35 @@ export class PointsService {
   }
 
   private computeUserRank(points: number) {
-    for (let i = 0; i < ORDERED_USER_RANKS.length; i++) {
-      const key = ORDERED_USER_RANKS[i];
-      const cfg = USER_RANKS[key];
+    const rankKeys = Object.keys(USER_RANKS);
+    let matchedRank: RankConfig | null = null;
+    let rankLevel = 1;
+    for (let i = 0; i < rankKeys.length; i++) {
+      const cfg = USER_RANKS[rankKeys[i]];
       if (points >= cfg.minPoints) {
-        return { rankName: cfg.rank, rankLevel: i + 1, limits: this.buildLimits(cfg) };
+        matchedRank = cfg;
+        rankLevel = i + 1;
       }
     }
     const fallback = USER_RANKS.NOVICE;
-    return { rankName: fallback.rank, rankLevel: ORDERED_USER_RANKS.length, limits: this.buildLimits(fallback) };
+    const finalRank = matchedRank || fallback;
+    return { rankName: finalRank.rank, rankLevel, limits: this.buildLimits(finalRank) };
   }
 
   private computeCheckerRank(points: number) {
-    for (let i = 0; i < ORDERED_CHECKER_RANKS.length; i++) {
-      const key = ORDERED_CHECKER_RANKS[i];
-      const cfg = CHECKER_RANKS[key];
+    const rankKeys = Object.keys(CHECKER_RANKS);
+    let matchedRank: RankConfig | null = null;
+    let rankLevel = 1;
+    for (let i = 0; i < rankKeys.length; i++) {
+      const cfg = CHECKER_RANKS[rankKeys[i]];
       if (points >= cfg.minPoints) {
-        return { rankName: cfg.rank, rankLevel: i + 1, limits: this.buildLimits(cfg) };
+        matchedRank = cfg;
+        rankLevel = i + 1;
       }
     }
     const fallback = CHECKER_RANKS.APPRENTICE;
-    return { rankName: fallback.rank, rankLevel: ORDERED_CHECKER_RANKS.length, limits: this.buildLimits(fallback) };
+    const finalRank = matchedRank || fallback;
+    return { rankName: finalRank.rank, rankLevel, limits: this.buildLimits(finalRank) };
   }
 
   // ─── Public API ────────────────────────────────────────────

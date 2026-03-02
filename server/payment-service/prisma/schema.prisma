@@ -1,0 +1,139 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  schemas  = ["payments"]
+}
+
+model UserPaymentCustomer {
+  id               String         @id @default(uuid()) @db.Uuid
+  userId           String         @unique @db.Uuid
+  stripeCustomerId String         @unique @db.VarChar(255)
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
+  subscriptions    Subscription[]
+
+  @@index([stripeCustomerId])
+  @@schema("payments")
+}
+
+model SubscriptionPlan {
+  id            String               @id @default(uuid()) @db.Uuid
+  name          String               @db.VarChar(100)
+  description   String?              @db.VarChar(255)
+  /// Legacy Stripe price mapping (may be superseded by PlanPrice.stripePriceId)
+  stripePriceId String?              @unique @db.VarChar(255)
+  /// Legacy flat pricing (superseded by region-based PlanPrice)
+  amountCents   Int?
+  currency      String?              @db.VarChar(10)
+  roleType      RoleType             @default(USER)
+  interval      SubscriptionInterval
+  active        Boolean              @default(true)
+  createdAt     DateTime             @default(now())
+  updatedAt     DateTime             @updatedAt
+  prices        PlanPrice[]
+  subscriptions Subscription[]
+
+  @@index([active])
+  @@schema("payments")
+}
+
+model PlanPrice {
+  id            String           @id @default(uuid()) @db.Uuid
+  planId        String           @db.Uuid
+  regionTier    RegionTier
+  currency      String           @db.VarChar(10)
+  /// Amount in the smallest currency unit (e.g. cents, paise)
+  amount        Int
+  /// Optional Stripe price identifier for this region/plan combination
+  stripePriceId String?          @unique @db.VarChar(255)
+  createdAt     DateTime         @default(now())
+  updatedAt     DateTime         @updatedAt
+  plan          SubscriptionPlan @relation(fields: [planId], references: [id])
+
+  @@unique([planId, regionTier])
+  @@schema("payments")
+}
+
+model Subscription {
+  id                   String              @id @default(uuid()) @db.Uuid
+  userId               String              @db.Uuid
+  customerId           String              @db.Uuid
+  planId               String              @db.Uuid
+  stripeSubscriptionId String              @unique @db.VarChar(255)
+  status               SubscriptionStatus  @default(ACTIVE)
+  currentPeriodStart   DateTime?
+  currentPeriodEnd     DateTime?
+  cancelAt             DateTime?
+  canceledAt           DateTime?
+  /// Region and pricing snapshot locked at first successful payment
+  regionTier           RegionTier?
+  currency             String?             @db.VarChar(10)
+  /// Amount in the smallest currency unit (e.g. cents, paise)
+  amount               Int?
+  /// Payment provider identifier (e.g. STRIPE, RAZORPAY)
+  provider             String              @default("STRIPE") @db.VarChar(50)
+  /// Generic provider reference for idempotency (e.g. payment_intent id)
+  providerRef          String?             @unique @db.VarChar(255)
+  createdAt            DateTime            @default(now())
+  updatedAt            DateTime            @updatedAt
+  customer             UserPaymentCustomer @relation(fields: [customerId], references: [id])
+  plan                 SubscriptionPlan    @relation(fields: [planId], references: [id])
+
+  @@index([userId])
+  @@index([status])
+  @@index([stripeSubscriptionId])
+  @@schema("payments")
+}
+
+model PaymentEvent {
+  id            String    @id @default(uuid()) @db.Uuid
+  stripeEventId String    @unique @db.VarChar(255)
+  type          String    @db.VarChar(100)
+  payload       Json
+  createdAt     DateTime  @default(now())
+  processedAt   DateTime?
+
+  @@index([stripeEventId])
+  @@schema("payments")
+}
+
+enum RoleType {
+  USER
+  CHECKER
+
+  @@schema("payments")
+}
+
+enum RegionTier {
+  IN
+  SEA
+  GLOBAL
+  EU
+  JP
+  ME
+
+  @@schema("payments")
+}
+
+enum SubscriptionInterval {
+  MONTHLY
+  YEARLY
+
+  @@schema("payments")
+}
+
+enum SubscriptionStatus {
+  INCOMPLETE
+  INCOMPLETE_EXPIRED
+  TRIALING
+  ACTIVE
+  PAST_DUE
+  CANCELED
+  UNPAID
+
+  @@schema("payments")
+}

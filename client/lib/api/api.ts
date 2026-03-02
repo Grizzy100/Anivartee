@@ -9,6 +9,9 @@ export const API_BASE_URL =
 export const POST_API_BASE_URL =
   process.env.NEXT_PUBLIC_POST_API_URL || "http://localhost:3002/api";
 
+export const PAYMENT_API_BASE_URL =
+  process.env.NEXT_PUBLIC_PAYMENT_API_URL || "http://localhost:3005/api";
+
 export const POINTS_API_BASE_URL =
   process.env.NEXT_PUBLIC_POINTS_API_URL || "http://localhost:3004/api";
 
@@ -357,6 +360,9 @@ export function createServiceClient(baseUrl: string): ServiceClient {
 
 /** Post-service client (port 3002) */
 export const postApi = createServiceClient(POST_API_BASE_URL);
+
+/** Payment-service client (port 3005) */
+export const paymentApi = createServiceClient(PAYMENT_API_BASE_URL);
 
 /** Points-service client (port 3004) */
 export const pointsApi = createServiceClient(POINTS_API_BASE_URL);

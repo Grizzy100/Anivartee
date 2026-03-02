@@ -56,3 +56,5 @@ server/social-service/
 # Ignore documentation temporarily
 # ===============================
 services-documentation.md
+
+anivartee_rank_system.md

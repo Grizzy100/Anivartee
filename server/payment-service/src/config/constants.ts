@@ -1,0 +1,5 @@
+export const CONSTANTS = {
+  RATE_LIMIT_WINDOW_MS: 15 * 60 * 1000,
+  RATE_LIMIT_MAX_REQUESTS: 100,
+};
+

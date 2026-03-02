@@ -23,10 +23,7 @@ const orbitron = Orbitron({
 
 export const metadata: Metadata = {
   title: "Anivartee",
-  description: "Infinite canvas SaaS landing page",
-  icons: {
-    icon: "/logo-new-removebg-preview.png",
-  },
+  description: "Infinite canvas SaaS landing page"
 };
 
 export default function RootLayout({

@@ -157,6 +157,7 @@ export class ProfileService {
         where: { id: userId },
         select: {
           id: true,
+          email: true,
           username: true,
           displayName: true,
           role: true,

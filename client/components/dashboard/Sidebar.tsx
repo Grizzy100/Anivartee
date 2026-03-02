@@ -25,7 +25,7 @@ const commonNavItems = [
   { label: "Home", icon: Home, path: "" },
   { label: "My Posts", icon: FileText, path: "/posts" },
   { label: "My Profile", icon: User, path: "/profile" },
-  { label: "Subscription", icon: CreditCard, path: "/subscription" },
+  { label: "Subscription", icon: CreditCard, path: "/pricing", isAbsolute: true },
   { label: "Settings", icon: Settings, path: "/settings" },
 ];
 
@@ -76,7 +76,9 @@ export function Sidebar({ role }: SidebarProps) {
       {/* Navigation */}
       <nav className="flex-1 px-3 py-2 space-y-1">
         {commonNavItems.map((item) => {
-          const fullPath = item.path ? `${basePath}${item.path}` : basePath;
+          const fullPath = item.isAbsolute
+            ? item.path
+            : (item.path ? `${basePath}${item.path}` : basePath);
           const isActive = pathname === fullPath;
 
           return (

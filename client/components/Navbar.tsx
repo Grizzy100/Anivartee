@@ -1,187 +1,101 @@
-//client\components\Navbar.tsx
 "use client";
 
+import { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
 import Image from "next/image";
-import { motion } from "framer-motion";
-import { RiLoginBoxLine } from "react-icons/ri";
-import { useRouter } from "next/navigation";
+import { RiLoginBoxLine, RiMenuLine, RiCloseLine } from "react-icons/ri";
 
 export default function Navbar() {
-  const router = useRouter();
+  const [open, setOpen] = useState(false);
+
+  const navLinks = [
+    { name: "Home", href: "/" },
+    { name: "Why", href: "/#why" },
+    { name: "About", href: "/#about" },
+    { name: "Pricing", href: "/pricing" },
+  ];
+
   return (
-    <div className="fixed top-5 left-1/2 -translate-x-1/2 z-50 px-3">
+    <div className="fixed top-4 left-1/2 -translate-x-1/2 w-full max-w-xs px-2 z-50">
       <motion.nav
-        initial={{ opacity: 0, y: -16 }}
+        initial={{ opacity: 0, y: -12 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5, ease: "easeOut" }}
-        className="
-          relative
-          flex items-center justify-between
-          gap-6
-          px-3 py-1.5
-          rounded-full
-          text-white
-          shadow-[0_8px_28px_rgba(0,0,0,0.35)]
-          border border-white/10
-          overflow-hidden
-        "
+        transition={{ duration: 0.25 }}
+        className="flex items-center justify-between border border-slate-700 bg-black/90 backdrop-blur-md px-3 py-1.5 rounded-full text-[12px] text-white shadow-sm"
       >
-        {/* Animated Base Gradient */}
-        <motion.div
-          animate={{ backgroundPosition: ["0% 50%", "100% 50%"] }}
-          transition={{
-            duration: 14,
-            repeat: Infinity,
-            repeatType: "mirror",
-            ease: "linear",
-          }}
-          className="
-            absolute inset-0 rounded-full
-            bg-gradient-to-r from-black via-neutral-900 to-neutral-800
-            bg-[length:200%_200%]
-          "
-        />
+        {/* Logo */}
+        <Link href="/" className="flex items-center">
+  <div className="w-7 aspect-square rounded-full bg-black flex items-center justify-center">
+    <Image
+      src="/SVGIcon.svg"
+      alt="Logo"
+      width={26}
+      height={24}
+      className="object-contain"
+      priority
+    />
+  </div>
+</Link>
 
-        {/* Soft Radial Shine */}
-        <div
-          className="
-            absolute inset-0 rounded-full
-            bg-[radial-gradient(circle_at_25%_30%,rgba(255,255,255,0.1),transparent_65%)]
-            pointer-events-none
-          "
-        />
-
-        {/* Metallic Flow */}
-        <motion.div
-          animate={{ backgroundPosition: ["0% 0%", "200% 0%"] }}
-          transition={{
-            duration: 10,
-            repeat: Infinity,
-            ease: "linear",
-          }}
-          className="
-            absolute inset-0 rounded-full
-            bg-[linear-gradient(120deg,transparent_40%,rgba(255,255,255,0.12)_50%,transparent_60%)]
-            bg-[length:200%_100%]
-            opacity-50
-            pointer-events-none
-          "
-        />
-
-        {/* Gloss Edge */}
-        <div
-          className="
-            absolute top-0 left-6 right-6 h-[1px]
-            bg-gradient-to-r from-transparent via-white/20 to-transparent
-            pointer-events-none
-          "
-        />
-
-        {/* LOGO */}
-        <Link href="/" className="relative z-10 flex items-center">
-          <div className="relative flex items-center justify-center w-10 h-10">
-
-            {/* Metallic ring */}
-            <div
-              className="
-                absolute inset-0 rounded-full
-                bg-[linear-gradient(135deg,#f5f5f5,#cfcfcf,#ffffff,#bdbdbd)]
-                p-[1px]
-                shadow-[0_0_10px_rgba(255,255,255,0.9)]
-              "
-            >
-              <div className="w-full h-full rounded-full flex items-center justify-center overflow-hidden bg-neutral-950">
-              <Image
-                src="/images/logo-new-removebg-preview.png"
-                alt="Anvartee"
-                width={34}
-                height={34}
-                className="object-contain scale-150"
-                priority
-              />
-            </div>
-
-            </div>
-
-          </div>
-        </Link>
-
-        {/* Links */}
-        <div className="relative z-10 hidden md:flex items-center gap-3">
-          {["Home", "Why", "About", "Pricing"].map((item) => (
+        {/* Desktop Links */}
+        <div className="hidden md:flex items-center gap-3">
+          {navLinks.map((link) => (
             <Link
-              key={item}
-              href="#"
-              className="
-                text-[11px]
-                tracking-[0.04em]
-                font-medium
-                text-white/60
-                transition-all duration-300
-                hover:text-white
-                hover:[text-shadow:0_0_12px_rgba(255,255,255,0.9)]
-              "
+              key={link.name}
+              href={link.href}
+              className="text-white/65 transition-all duration-300 hover:text-white hover:drop-shadow-[0_0_5px_rgba(255,255,255,0.8)] text-[10px]"
             >
-              {item}
+              {link.name}
             </Link>
           ))}
         </div>
 
-        {/* CTA */}
-        {/* Login CTA */}
-<div className="relative z-10 group">
+        {/* Login Icon */}
+        <div className="hidden md:flex items-center">
+          <Link
+            href="/login"
+            className="text-white/65 hover:text-white transition-all duration-300 hover:drop-shadow-[0_0_5px_rgba(255,255,255,0.8)]"
+          >
+            <RiLoginBoxLine size={16} />
+          </Link>
+        </div>
 
-  <motion.button
-    whileTap={{ scale: 0.92 }}
-    whileHover={{ scale: 1.12 }}
-    onClick={() => router.push("/login")}
-    className="
-      relative
-      flex items-center justify-center
-      w-6 h-6
-     
-      text-white/60
-      transition-all duration-300
-      hover:text-white
-      hover:border-white/30
-      hover:bg-white/[0.06]
-      hover:shadow-[0_0_20px_rgba(255,255,255,0.35)]
-      backdrop-blur-md
-    "
-  >
-    <RiLoginBoxLine size={18} />
-  </motion.button>
-
-  {/* Tooltip */}
-  <div
-    className="
-      pointer-events-none
-      absolute
-      left-1/2 -translate-x-1/2
-      top-[130%]
-      whitespace-nowrap
-      text-[10px]
-      font-medium
-      text-white/75
-      px-2 py-1
-      rounded-md
-      border border-white/10
-      bg-black/60
-      backdrop-blur-md
-      opacity-0
-      translate-y-1
-      transition-all duration-500 ease-out
-      group-hover:opacity-100
-      group-hover:translate-y-0
-    "
-  >
-    Login Button
-  </div>
-
-</div>
-
+        {/* Mobile Toggle */}
+        <button
+          onClick={() => setOpen(!open)}
+          className="md:hidden text-white"
+        >
+          {open ? <RiCloseLine size={18} /> : <RiMenuLine size={18} />}
+        </button>
       </motion.nav>
+
+      {/* Mobile Menu */}
+      <AnimatePresence>
+        {open && (
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            transition={{ duration: 0.2 }}
+            className="md:hidden mt-2 bg-black/95 border border-slate-700 rounded-xl p-4 flex flex-col items-center gap-3 text-[13px] text-white"
+          >
+            {navLinks.map((link) => (
+              <Link
+                key={link.name}
+                href={link.href}
+                onClick={() => setOpen(false)}
+                className="hover:text-white transition"
+              >
+                {link.name}
+              </Link>
+            ))}
+            <Link href="/login" onClick={() => setOpen(false)}>
+              Login
+            </Link>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

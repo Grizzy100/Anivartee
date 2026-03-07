@@ -39,7 +39,7 @@ Anivartee merges social media mechanics with crowd-sourced fact-checking into a 
 
 ## 📸 Platform Showcase
 
-<details>
+<details open>
 <summary><b>🌐 Landing Page</b></summary>
 <br/>
 
@@ -47,7 +47,7 @@ Anivartee merges social media mechanics with crowd-sourced fact-checking into a 
 
 </details>
 
-<details>
+<details open>
 <summary><b>🆕 Signup & 🔐 Login</b></summary>
 <br/>
 
@@ -65,7 +65,7 @@ Anivartee merges social media mechanics with crowd-sourced fact-checking into a 
 
 </details>
 
-<details>
+<details open>
 <summary><b>🔎 Fact-Checker Moderation Queue</b></summary>
 <br/>
 
@@ -73,7 +73,7 @@ Anivartee merges social media mechanics with crowd-sourced fact-checking into a 
 
 </details>
 
-<details>
+<details open>
 <summary><b>💎 Region-Based Subscription Plans</b></summary>
 <br/>
 

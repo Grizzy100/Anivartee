@@ -1,324 +1,424 @@
-🧠 Anivartee
 <div align="center">
-🌐 A Social Platform Where Truth Competes for Visibility
 
-Anivartee is a community-driven ecosystem combining social media mechanics with crowd-sourced fact-checking.
+<img src="https://readme-typing-svg.demolab.com?font=Fira+Code&weight=700&size=40&pause=1000&color=6366F1&center=true&vCenter=true&width=700&lines=Anivartee;Where+Truth+Competes;For+Visibility" alt="Anivartee" />
 
-Instead of moderation being hidden behind opaque algorithms or centralized authorities, Anivartee transforms truth verification into a collaborative system driven by reputation, incentives, and transparency.
+<br/>
+
+**A community-driven platform that transforms truth verification into a collaborative, reputation-powered game.**
+
+<br/>
+
+[![Node.js](https://img.shields.io/badge/Node.js-339933?style=for-the-badge&logo=nodedotjs&logoColor=white)](https://nodejs.org)
+[![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org)
+[![Next.js](https://img.shields.io/badge/Next.js_16-000000?style=for-the-badge&logo=nextdotjs&logoColor=white)](https://nextjs.org)
+[![React](https://img.shields.io/badge/React_19-61DAFB?style=for-the-badge&logo=react&logoColor=black)](https://react.dev)
+[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-4169E1?style=for-the-badge&logo=postgresql&logoColor=white)](https://www.postgresql.org)
+[![Redis](https://img.shields.io/badge/Redis_7-FF4438?style=for-the-badge&logo=redis&logoColor=white)](https://redis.io)
+[![Docker](https://img.shields.io/badge/Docker-2496ED?style=for-the-badge&logo=docker&logoColor=white)](https://www.docker.com)
+[![Prisma](https://img.shields.io/badge/Prisma-2D3748?style=for-the-badge&logo=prisma&logoColor=white)](https://www.prisma.io)
+[![Stripe](https://img.shields.io/badge/Stripe-635BFF?style=for-the-badge&logo=stripe&logoColor=white)](https://stripe.com)
+[![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS_v4-06B6D4?style=for-the-badge&logo=tailwindcss&logoColor=white)](https://tailwindcss.com)
 
 </div>
-🎯 Platform Vision
 
-Modern social platforms reward virality, not truth.
+---
 
-Anivartee aims to change that by creating a system where:
+## 🎯 What Is Anivartee?
 
-✔ Content visibility depends on verification
-✔ Users gain reputation through accuracy
-✔ Fact-checking becomes gamified community governance
-✔ Moderation becomes transparent and distributed
+> *Modern social platforms reward virality, not truth. Anivartee changes that.*
 
-Users progress through reputation ranks, unlocking higher moderation privileges and system capabilities.
+Anivartee merges social media mechanics with crowd-sourced fact-checking into a single, self-regulating ecosystem. Instead of hiding moderation behind opaque algorithms or centralized authorities, it transforms truth verification into a **gamified community governance layer** driven by reputation, incentives, and full transparency.
 
-📸 Platform Screenshots
+| Without Anivartee | With Anivartee |
+|---|---|
+| Virality determines visibility | Verification determines visibility |
+| Moderation is opaque & centralised | Moderation is transparent & distributed |
+| Social scores mean nothing | Reputation directly unlocks system privileges |
+| Truth has no reward | Accuracy earns reputation & rank |
 
-Below are key interfaces of the platform.
+---
 
-🌐 Landing Page
+## 📸 Platform Showcase
+
+<details>
+<summary><b>🌐 Landing Page</b></summary>
+<br/>
+
 ![Landing Page](https://raw.githubusercontent.com/Grizzy100/Anivartee/main/client/public/photos/Landing%20Page.png)
 
+</details>
 
-🆕 Signup Page
+<details>
+<summary><b>🆕 Signup & 🔐 Login</b></summary>
+<br/>
 
-Users can create accounts and choose their role in the platform.
+| Signup | Login |
+|---|---|
+| ![Signup](https://raw.githubusercontent.com/Grizzy100/Anivartee/main/client/public/photos/SignUp.png) | ![Login](https://raw.githubusercontent.com/Grizzy100/Anivartee/main/client/public/photos/SignIn.png) |
 
-![Signup](https://raw.githubusercontent.com/Grizzy100/Anivartee/main/client/public/photos/SignUp.png)
+</details>
 
-
-🔐 Login Page
-
-Secure login interface for returning users.
-
-![Login](https://raw.githubusercontent.com/Grizzy100/Anivartee/main/client/public/photos/SignIn.png)
-
-
-🧑‍💻 User Dashboard
-
-Main platform interface where users interact with content.
+<details open>
+<summary><b>🧑‍💻 User Dashboard</b></summary>
+<br/>
 
 ![User Dashboard](https://raw.githubusercontent.com/Grizzy100/Anivartee/main/client/public/photos/User%20Dashboard.png)
 
-Users can:
+</details>
 
-✔ create posts
-✔ participate in discussions
-✔ view moderation outcomes
-✔ track reputation points
-
-
-🔎 Fact-Checker Moderation Queue
-
-The moderation queue enables fact-checkers to claim and verify posts.
+<details>
+<summary><b>🔎 Fact-Checker Moderation Queue</b></summary>
+<br/>
 
 ![Fact Checker Moderation Queue](https://raw.githubusercontent.com/Grizzy100/Anivartee/main/client/public/photos/Fact%20moderation.png)
-💎 Subscription Plans
 
-Subscription tiers unlock additional analytics and creator features.
+</details>
 
-![India Subscription](https://raw.githubusercontent.com/Grizzy100/Anivartee/main/client/public/photos/Screenshot%202026-03-07%20111141.png)
+<details>
+<summary><b>💎 Region-Based Subscription Plans</b></summary>
+<br/>
 
-![Netherlands Subscription](https://raw.githubusercontent.com/Grizzy100/Anivartee/main/client/public/photos/Screenshot%202026-03-07%20112324.png)
+| India 🇮🇳 | Netherlands 🇳🇱 |
+|---|---|
+| ![India](https://raw.githubusercontent.com/Grizzy100/Anivartee/main/client/public/photos/Screenshot%202026-03-07%20111141.png) | ![Netherlands](https://raw.githubusercontent.com/Grizzy100/Anivartee/main/client/public/photos/Screenshot%202026-03-07%20112324.png) |
 
-![Singapore Subscription](https://raw.githubusercontent.com/Grizzy100/Anivartee/main/client/public/photos/Screenshot%202026-03-07%20112334.png)
+| Singapore 🇸🇬 | USA 🇺🇸 |
+|---|---|
+| ![Singapore](https://raw.githubusercontent.com/Grizzy100/Anivartee/main/client/public/photos/Screenshot%202026-03-07%20112334.png) | ![USA](https://raw.githubusercontent.com/Grizzy100/Anivartee/main/client/public/photos/Screenshot%202026-03-07%20112348.png) |
 
-![USA Subscription](https://raw.githubusercontent.com/Grizzy100/Anivartee/main/client/public/photos/Screenshot%202026-03-07%20112348.png)
+</details>
 
+---
 
-🛠 Tech Stack
-🧩 Backend
+## ⭐ Core Features
 
-Node.js
+### 🛡️ Claim-Based Moderation Queue
 
-Express
+Content that requires verification enters a tamper-resistant distributed work queue. Each claim is exclusively held for **30 minutes**, preventing race conditions and duplicate work.
 
-TypeScript
+```
+Post Created
+    │
+    ▼
+[PENDING] ──────────────── Fact-Checker Claims
+    │                              │
+    ▼                              ▼
+[UNDER_REVIEW] ◄──────── 30-minute exclusive window
+    │                              │
+    ├── Verdict submitted ─► [VALIDATED] or [DEBUNKED]
+    │
+    └── Claim expires    ─► Back to [PENDING]  (claimExpiry.job.ts)
+```
 
-Prisma ORM
+- `ClaimRecord` evaluates `expiresAt` **at query time**, making stale claims instantly invisible without waiting for the background job — eliminating the race condition entirely.
+- Upsert-based re-claims prevent unique constraint violations under concurrent access.
 
-🗄 Database
+---
 
-PostgreSQL
+### 🧾 Event-Sourced Reputation Engine
 
-Database-per-service isolation:
+Reputation is **never mutated directly**. Every change is an immutable event appended to a ledger — giving the system full auditability and tamper-proof history.
 
-identity-service
-posts-service
-points-service
-payment-service
+```
+Every Interaction
+      │
+      ▼
+PointsLedger  ←── Immutable, append-only log
+      │             (POST_CREATED, FACT_CHECK_COMPLETED, PENALTY…)
+      │ (same transaction)
+      ▼
+PointsBalance ←── Materialized view → O(1) balance reads
+```
 
-Each service maintains its own schema and domain boundaries, forming a true microservice architecture.
+---
 
-💻 Frontend
+### 🔥 Hot Score Algorithmic Feed
 
-Next.js
+The feed uses a **Reddit-style hot score** recalculated on every significant interaction:
 
-React
+```
+hotScore = f(likes, views, recency, moderation_state)
+```
 
-Tailwind CSS
+Database index on `(status, hotScore DESC)` ensures feed queries stay fast regardless of table size. Post verification state directly influences visibility — verified content rises, debunked content falls.
 
-⚙ Infrastructure
+---
 
-Docker
+### 🏆 Reputation Rank System
 
-Docker Compose
+Users and Fact-Checkers level up independently, unlocking greater system privileges as their accuracy and contribution grow.
 
-Redis (caching + performance layer)
+**User Ranks**
 
-Redis powers:
+| Rank | Points Required | Posts/Day | Edit Window |
+|---|---|---|---|
+| 🌱 Novice | 0 | 3 | 12 hours |
+| 📝 Contributor | 400 | 5 | 24 hours |
+| 🔬 Researcher | 1,200 | 8 | 48 hours |
+| ✅ Trusted | 3,000 | 12 | Unlimited |
+| 💫 Elite | 7,000 | 20 | Unlimited |
+| 👑 Legend | 15,000 | Unlimited | Unlimited |
+
+**Fact-Checker Ranks**
+
+| Rank | Points Required | Flag Weight | Max Penalty |
+|---|---|---|---|
+| 🎓 Apprentice | 0 | 1.0× | −50 pts |
+| 📊 Analyst | 600 | 1.5× | −100 pts |
+| 🕵️ Investigator | 1,800 | 2.0× | −200 pts |
+| 🛡️ Specialist | 5,000 | 2.5× | −300 pts |
+| 👁️ Sentinel | 12,000 | 3.0× | −450 pts |
+| ⚔️ Guardian | 25,000 | 3.5× | −600 pts |
+
+---
 
-⚡ session caching
-⚡ feed ranking acceleration
-⚡ reputation leaderboard caching
-⚡ subscription lookup caching
-
-🧱 System Architecture
-
-The backend follows a database-per-service microservice architecture.
-
-User Service
-     │
-Post Service
-     │
-Points Service
-     │
-Payment Service
-
-Each service operates within its bounded context and communicates via REST APIs, preparing the system for future event-driven communication.
-
-⭐ Core Features
-🧩 Unified Social + Moderation Ecosystem
-
-Anivartee merges content creation and moderation into a single ecosystem.
-
-Users do not simply consume content — they govern the truthfulness of the platform.
-
-This creates a self-regulating verification layer powered by community reputation.
-
-🛡 Moderation Queue & Claim System
-
-When content requires verification it enters a global moderation queue.
-
-Fact-checkers can claim posts, preventing duplicate verification work.
-
-Claim Workflow
-
-1️⃣ Post enters moderation queue
-2️⃣ Fact-checker claims the post
-3️⃣ System locks claim for 30 minutes
-4️⃣ Verification verdict submitted
-5️⃣ Claim closes
-
-If no verdict is submitted:
-
-claimExpiry.job.ts
-
-automatically releases the claim and returns the post to the queue.
-
-🧾 Event-Sourced Reputation Engine
-
-Instead of updating scores directly, Anivartee uses an event-sourced points engine.
-
-Reputation Model
-PointsLedger (immutable history)
-       ↓
-PointsBalance (materialized view)
-
-Benefits:
-
-✔ Complete auditability
-✔ Tamper-proof reputation
-✔ Fast O(1) score lookup
-
-🔥 Dynamic Algorithmic Feed
-
-The home feed uses a Reddit-style Hot Score algorithm.
-
-Ranking factors:
-
-👍 likes
-👀 views
-🕒 recency
-🛡 moderation state
-
-State transitions dynamically affect ranking:
-
-PENDING → UNDER_REVIEW → VERIFIED
-🔐 Authentication System
-
-Users can register and authenticate using the built-in system.
-
-Users can register as:
-
-👤 User
-🔎 Checker
-
-Checkers gain fact-verification privileges within the moderation system.
-
-⚠ Engineering Challenges
-⚡ Concurrency & Race Conditions
-
-Moderation claim logic introduced real-world concurrency problems.
-
-Example scenario:
-
-A claim expired but the cron job had not yet reaped it, leaving the record marked as active.
-
-Another checker attempting to claim the post triggered unique constraint violations.
-
-Solution
-
-✔ expiration evaluated at query time
-✔ database-level upsert locking
-
-This eliminated race conditions during simultaneous claims.
-
-🔗 Cross-Service State Synchronization
-
-Deleting posts in post-service could break references inside points-service.
-
-Solution: Soft Deletion
-deletedAt timestamp
-
-Posts disappear from feeds while maintaining ledger integrity.
-
-🧩 Breaking the Monolith
-
-The original monolith (social-service) was decomposed into:
-
-user-service
-post-service
-points-service
-payment-service
-
-This revealed hidden coupling chains:
-
+### 🔐 Authentication & Roles
+
+Three distinct roles with scoped privileges:
+
+| Role | Capabilities |
+|---|---|
+| **User** | Create posts, comment, like, flag, track reputation |
+| **Fact Checker** | All User capabilities + claim & verify posts in moderation queue |
+| **Admin** | Full platform access |
+
+Auth stack: **JWT (15m access / 7d refresh)** with device-level revocable sessions, **Google OAuth 2.0**, Bcrypt password hashing, and single-use password reset tokens.
+
+---
+
+### 💳 Region-Based Subscription Tiers
+
+Pricing adapts per region using a `(plan, regionTier)` pricing matrix supporting **IN · SEA · GLOBAL · EU · JP · ME**. Stripe webhook idempotency is enforced via a `PaymentEvent` deduplication table, ensuring no double-charges on network retries.
+
+---
+
+## 🏗️ System Architecture
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                       Next.js Client                         │
+│          (App Router · React 19 · Tailwind CSS v4)           │
+└──────────────────────┬──────────────────────────────────────┘
+                       │  REST
+         ┌─────────────┼─────────────┬──────────────┐
+         │             │             │              │
+   ┌─────▼──────┐ ┌────▼──────┐ ┌───▼────────┐ ┌──▼───────────┐
+   │user-service│ │post-      │ │points-     │ │payment-      │
+   │   :3001    │ │service    │ │service     │ │service       │
+   │            │ │  :3002    │ │  :3004     │ │  :3005       │
+   │ identity   │ │  posts    │ │  points    │ │  payments    │
+   │  schema    │ │  schema   │ │  schema    │ │  schema      │
+   └─────┬──────┘ └────┬──────┘ └───┬────────┘ └──┬───────────┘
+         │             │             │              │
+         └─────────────┴──────┬──────┴──────────────┘
+                              │
+                   ┌──────────▼──────────┐
+                   │   Redis 7 Alpine     │
+                   │  · Rate limiting     │
+                   │  · Leaderboard cache │
+                   │  · Achievement cache │
+                   └─────────────────────┘
+```
+
+**Database-per-service isolation** — each service owns its schema and PostgreSQL credentials. Cross-service calls use an `X-Service-Token` shared secret on internal `/api/internal/*` routes, bypassing public rate limiters.
+
+**Dependency flow:** `post-service` → `points-service` → `user-service` · `payment-service` → `user-service`
+
+---
+
+## 🛠️ Tech Stack
+
+### Backend (shared across all services)
+
+| Layer | Technology | Version |
+|---|---|---|
+| Runtime | Node.js (ESM) | LTS |
+| Framework | Express | ^5.2 |
+| Language | TypeScript | ^5.9 |
+| ORM | Prisma + `@prisma/adapter-pg` | ^7.4 |
+| Database | PostgreSQL | 16 |
+| Cache | Redis + ioredis | 7 / ^5.10 |
+| Auth | JWT + Passport (Google OAuth) | ^9.0 / ^0.7 |
+| Validation | Zod | ^4.3 |
+| Payments | Stripe SDK | ^18.5 |
+| Email | Resend + Nodemailer | ^6.9 |
+| Image Uploads | Cloudinary | ^2.9 |
+| Logging | Winston | ^3.19 |
+| Security | Helmet + express-rate-limit | ^8.1 |
+| HTTP Client | Axios | ^1.13 |
+
+### Frontend
+
+| Technology | Version |
+|---|---|
+| Next.js | 16.1.6 |
+| React | 19.2.3 |
+| Tailwind CSS | v4 |
+| Framer Motion | ^12.34 |
+| Radix UI / shadcn | ^1.4 |
+| React Hook Form + Zod | ^7.71 |
+| Lucide React | ^0.563 |
+| react-joyride (onboarding tours) | ^2.9 |
+
+### Infrastructure
+
+| Tool | Purpose |
+|---|---|
+| Docker + Compose | Containerisation & orchestration |
+| Redis 7 Alpine | Rate limiting, caching, leaderboard |
+| PostgreSQL 16 | Primary data store (isolated per service) |
+
+---
+
+## 📁 Repository Structure
+
+```
+Anivartee/
+├── client/                         # Next.js 16 frontend
+│   ├── app/
+│   │   ├── (auth)/                 # Login, signup, password reset, OAuth callback
+│   │   ├── (dashboard)/
+│   │   │   ├── user/               # User feed & posts
+│   │   │   ├── fact-checker/       # Fact-checker feed + moderation queue
+│   │   │   └── admin/              # Admin panel (scaffolded)
+│   │   ├── pricing/                # Subscription tiers
+│   │   └── checkout/               # Stripe checkout
+│   ├── components/
+│   │   ├── dashboard/              # Feed, moderation, posts, comments, sidebar
+│   │   └── ui/                     # shadcn/Radix reusable components
+│   └── lib/
+│       ├── api/                    # Typed API client functions per service
+│       ├── auth/                   # Client-side auth helpers & contexts
+│       └── hooks/                  # Custom React hooks
+│
+└── server/
+    ├── user-service/    :3001       # Authentication, JWT, Google OAuth, profiles
+    ├── post-service/    :3002       # Posts, feed algorithm, moderation queue, comments
+    ├── points-service/  :3004       # Reputation ledger, ranks, leaderboard
+    └── payment-service/ :3005       # Stripe subscriptions, region pricing, webhooks
+```
+
+---
+
+## ⚠️ Engineering Challenges Solved
+
+### ⚡ Concurrency & Race Conditions in Claim Logic
+
+A claim could expire just as a new checker tried to claim the same post, causing a unique constraint violation.
+
+**Solution:** Expiration is evaluated **at query time** (`WHERE expiresAt > NOW()`), not by polling DB status. Combined with upsert-based re-claims, the race window was closed at the database level — making stale records implicitly invisible the millisecond they expire.
+
+---
+
+### 🔗 Cross-Service Referential Integrity
+
+Deleting a post in `post-service` would orphan ledger entries in `points-service`, ruining the audit log.
+
+**Solution:** Soft deletion via `deletedAt` timestamp. Posts vanish from feeds (`WHERE deletedAt IS NULL`) but remain in the database to preserve referential integrity and moderation audit trail.
+
+---
+
+### 🧩 Decomposing a Monolith
+
+The original `social-service` monolith was decomposed into four bounded-context services, exposing hidden coupling chains:
+
+```
 Post → Points → User
+```
 
-The experience reinforced designing services based on:
+This revealed the importance of designing services around **failure domains** and **operational boundaries**, not just resource types. If `user-service` spikes in latency, it could cascade back to `post-service` — making resilient fallbacks a necessity, not an afterthought.
 
-failure domains
+---
 
-operational boundaries
+### 🔁 Async Fire-and-Forget Side Effects
 
-domain ownership
+Post creation returns `HTTP 201` immediately. Points awarding, hot-score recalculation, moderation queue insertion, and daily activity tracking run as **un-awaited background promises** — keeping the user experience fast while accepting eventual consistency as a deliberate architectural trade-off.
 
-🚀 Future Improvements
-📡 Event-Driven Architecture
+---
 
-Introduce:
+## 🚀 Running the Project
 
-RabbitMQ / Kafka
+### Prerequisites
 
-Using the Outbox Pattern to replace synchronous service calls.
+- Docker & Docker Compose
+- Node.js LTS (for local frontend development)
 
-⚡ Advanced Redis Caching
+### 1. Clone the repository
 
-Future layers:
-
-hot-score feed caching
-
-moderation queue caching
-
-reputation leaderboard caching
-
-🌐 API Gateway
-
-Centralized layer for:
-
-authentication
-
-routing
-
-rate limiting
-
-🛑 Circuit Breakers
-
-Prevent cascading failures between services.
-
-📊 Observability
-
-Planned integration:
-
-OpenTelemetry tracing
-
-Prometheus metrics
-
-centralized logging
-
-🧪 Running the Project
-Clone repository
-git clone <repository-url>
+```bash
+git clone https://github.com/Grizzy100/Anivartee.git
 cd Anivartee
-Start infrastructure
+```
+
+### 2. Configure environment variables
+
+Each service has a `.env.example`. Copy and populate before starting:
+
+```bash
+cp server/user-service/.env.example    server/user-service/.env
+cp server/post-service/.env.example    server/post-service/.env
+cp server/points-service/.env.example  server/points-service/.env
+cp server/payment-service/.env.example server/payment-service/.env
+```
+
+Key variables to set: `DATABASE_URL`, `JWT_SECRET`, `INTERNAL_SERVICE_TOKEN`, `STRIPE_SECRET_KEY`, `RESEND_API_KEY`, `CLOUDINARY_*`, `GOOGLE_CLIENT_ID/SECRET`.
+
+### 3. Start all backend services
+
+```bash
 docker-compose up -d
-Install dependencies
+```
 
-Start each service individually.
+This starts Redis, all four backend microservices, and mounts `src/` for hot-reload in development.
 
-🧠 Engineering Takeaway
+| Service | URL |
+|---|---|
+| user-service | http://localhost:3001 |
+| post-service | http://localhost:3002 |
+| points-service | http://localhost:3004 |
+| payment-service | http://localhost:3005 |
 
-Designing Anivartee changed how I think about system design.
+### 4. Start the frontend
 
-I stopped thinking in terms of:
+```bash
+cd client
+npm install
+npm run dev
+```
 
-controllers → endpoints
+Open [http://localhost:3000](http://localhost:3000).
 
-and started thinking in terms of:
+---
 
-🧱 system boundaries
-🔁 eventual consistency
-⚙ operational resilience
-🔒 domain invariants
+## 🔮 Roadmap
 
-A strong architecture is defined not by the tools it uses —
-but by how gracefully it handles failure, scale, and change.
+| Area | Planned Improvement |
+|---|---|
+| 📡 **Event-Driven Arch** | Replace synchronous inter-service REST calls with RabbitMQ/Kafka using the Outbox Pattern |
+| ⚡ **Advanced Caching** | Hot-score feed cache, moderation queue cache, full leaderboard Redis pipeline |
+| 🌐 **API Gateway** | Centralised auth, routing, and rate limiting layer |
+| 🛑 **Circuit Breakers** | Prevent cascading failures across service boundaries |
+| 📊 **Observability** | OpenTelemetry tracing + Prometheus metrics + centralised log aggregation |
+| 🔥 **Streaks Engine** | Complete the `streakUpdate.job.ts` scaffold |
+| 🔒 **Admin Panel** | Build out the scaffolded admin dashboard |
+
+---
+
+## 🧠 Engineering Takeaway
+
+> Building Anivartee changed how I think about system design.
+>
+> I stopped thinking in terms of **controllers → endpoints**, and started thinking in terms of **system boundaries → failure domains → operational resilience → domain invariants**.
+>
+> A strong architecture is defined not by the tools it uses —
+> but by **how gracefully it handles failure, scale, and change**.
+
+---
+
+<div align="center">
+
+Made with ❤️ by [Grizzy100](https://github.com/Grizzy100)
+
+⭐ If you found this interesting, consider starring the repo!
+
+</div>

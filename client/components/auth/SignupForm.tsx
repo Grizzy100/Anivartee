@@ -254,12 +254,12 @@ export default function SignupForm() {
 
           {/* Google OAuth */}
           {/* <a */}
-            {/* href={getGoogleOAuthUrl()}
-            className="flex items-center justify-center gap-2 w-full h-9 border border-white/40 text-xs font-medium text-white hover:bg-white hover:text-black transition-all duration-200"
-          >
-            <GoogleIcon />
-            Continue with Google */}
-          {/* </a> */}
+          {/* //   href={getGoogleOAuthUrl()}
+          //   className="flex items-center justify-center gap-2 w-full h-9 border border-white/40 text-xs font-medium text-white hover:bg-white hover:text-black transition-all duration-200"
+          // >
+          //   <GoogleIcon /> */}
+          {/* //   Continue with Google */}
+          {/* // </a> */}
 
           <p className="text-xs text-white/70 text-center mt-4">
             Already have an account?{" "}

@@ -322,7 +322,7 @@ export function PricingSection({
                     </div>
 
                     {/* ✅ BACK BUTTON ADDED HERE */}
-                    <div className="mt-12 flex justify-center">
+                    <div className="mt-8 flex justify-center">
                         <button
                             onClick={handleBack}
                             className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"

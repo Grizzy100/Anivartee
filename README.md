@@ -1,104 +1,324 @@
-# Anivartee
+🧠 Anivartee
+<div align="center">
+🌐 A Social Platform Where Truth Competes for Visibility
 
-Anivartee is a community-driven ecosystem that merges social media mechanics with rigorous, crowd-sourced fact-checking. Designed as a distributed microservice architecture, it aims to solve the problem of viral misinformation by intrinsically tying content visibility to truth verification and user reputation.
+Anivartee is a community-driven ecosystem combining social media mechanics with crowd-sourced fact-checking.
 
-Unlike traditional social platforms where moderation is an afterthought or handled by opaque central authorities, Anivartee makes fact-checking a core, gamified gameplay loop. Users earn reputation through accurate reporting and verification, advancing through ranks that grant them higher moderation privileges and system limits.
+Instead of moderation being hidden behind opaque algorithms or centralized authorities, Anivartee transforms truth verification into a collaborative system driven by reputation, incentives, and transparency.
 
-Building Anivartee was my transition into designing complex, distributed backend architectures. It forced me to move beyond simple CRUD applications and think deeply about service boundaries, eventual consistency, race conditions, and event-sourced state management.
+</div>
+🎯 Platform Vision
 
-## Tech Stack
+Modern social platforms reward virality, not truth.
 
-### Backend
-- **Node.js & Express**
-- **TypeScript**
-- **Prisma ORM**
+Anivartee aims to change that by creating a system where:
 
-### Database
-- **PostgreSQL** (Database-per-service logical isolation: `identity`, `points`, `posts`)
+✔ Content visibility depends on verification
+✔ Users gain reputation through accuracy
+✔ Fact-checking becomes gamified community governance
+✔ Moderation becomes transparent and distributed
 
-### Frontend
-- **Next.js & React**
-- **Tailwind CSS**
+Users progress through reputation ranks, unlocking higher moderation privileges and system capabilities.
 
-### DevOps & Infrastructure
-- **Docker** & **Docker Compose** for containerization and local orchestration
+📸 Platform Screenshots
 
-The backend follows a **database-per-service microservices pattern**. The architecture is decoupled into `user-service`, `post-service`, and `points-service`. Each service manages its own bounded context and isolated database schema, currently communicating via synchronous REST APIs, laying the groundwork for future asynchronous message-driven evolution.
+Below are key interfaces of the platform.
 
----
+🌐 Landing Page
+![Landing Page](https://raw.githubusercontent.com/Grizzy100/Anivartee/main/client/public/photos/Landing%20Page.png)
 
-## Core Features
 
-### 1. Unified Social & Moderation Ecosystem
-Anivartee consolidates content discovery and content moderation into a single cohesive platform. The objective was to eliminate the friction between "consuming" and "governing" content, turning the user base into a self-regulating immune system for the platform.
+🆕 Signup Page
 
-### 2. Intelligent Moderation Queue & Claim State Machine
-When content is flagged or requires review, it enters a global moderation queue. To prevent duplicate work and race conditions, the system uses a strict **Claim-Based Workflow**:
-- Fact-checkers actively "claim" a post, locking it exclusively to them for a 30-minute window.
-- If no verdict is submitted before the timer expires, a specialized background worker (`claimExpiry.job.ts`) automatically reaps the expired claim and returns the post to the general pool.
-- The system enforces strict invariant checks: fact-checkers cannot claim their own posts (conflict of interest), and claims disappear the exact millisecond they expire, preventing race conditions.
+Users can create accounts and choose their role in the platform.
 
-### 3. Event-Sourced Reputation Engine 
-Instead of simply updating a user's score in a database column, the `points-service` utilizes an **Event Sourcing / CQRS-lite pattern**:
-- Every point addition or deduction is appended as an immutable event to a `PointsLedger`. This guarantees flawless auditability for the platform's economy.
-- To prevent calculating sums across thousands of rows on every read, the system maintains a synchronous materialized view (`PointsBalance`), allowing for `O(1)` score lookups.
+![Signup](https://raw.githubusercontent.com/Grizzy100/Anivartee/main/client/public/photos/SignUp.png)
 
-### 4. Dynamic Algorithmic Feed
-The home feed requires sophisticated ranking to surface content that is both new and highly engaged. Anivartee implements a Reddit-style "Hot Score" algorithm that balances initial likes, views, and recency. The score dynamically recalculates based on interactions and state changes (e.g., when a post transitions from `PENDING` to `UNDER_REVIEW`).
 
----
+🔐 Login Page
 
-## Architectural Challenges & Learnings
+Secure login interface for returning users.
 
-Building Anivartee introduced several real-world engineering hurdles that tested my understanding of distributed systems.
+![Login](https://raw.githubusercontent.com/Grizzy100/Anivartee/main/client/public/photos/SignIn.png)
 
-### Concurrency and Distributed Race Conditions
-Handling the moderation claim flow exposed the harsh realities of concurrent requests. Initially, if a claim expired but the 60-second cron job hadn't reaped it yet, the database still marked it as "Active". If another fact-checker tried to claim it, the database threw unique constraint violations.
 
-I had to redesign the queries to evaluate `expiresAt` timestamps strictly at query time, effectively creating a system where records become implicitly "invisible" the moment they expire, bridging the gap between database state and real-time execution. Furthermore, replacing simple `create` operations with database-level `upsert` locks completely eliminated unique constraint violations during high-concurrency re-claims.
+🧑‍💻 User Dashboard
 
-### Cross-Service State Synchronization
-Because each service has an isolated database, maintaining referential integrity is complex.
-If a post is deleted in the `post-service`, wiping it completely would orphan the points associated with it in the `points-service` ledger, ruining the financial audit log.
+Main platform interface where users interact with content.
 
-To solve this, I implemented strict **Soft Deletion (`deletedAt`)** patterns. This ensures that while a post vanishes from the user's feed, its UUID and history remain intact, allowing the `points-service` to maintain a globally consistent state.
+![User Dashboard](https://raw.githubusercontent.com/Grizzy100/Anivartee/main/client/public/photos/User%20Dashboard.png)
 
-### Breaking the Monolith
-During development, I extracted an older monolith-style `social-service` into bounded contexts (`post-service` and `points-service`).
-This extraction forced me to map out deep dependency chains (`Post -> Points -> User`). It highlighted the dangers of synchronous service coupling: if the `user-service` experiences a latency spike, it cascades back to the `post-service`.
+Users can:
 
-This experience taught me to identify boundaries not just by data models, but by failure domains and operational lifecycles.
+✔ create posts
+✔ participate in discussions
+✔ view moderation outcomes
+✔ track reputation points
 
-### The True Meaning of Microservices
-Designing Anivartee fundamentally reshaped my engineering approach. I stopped thinking in terms of mere "endpoints and controllers" and started thinking in terms of **system boundaries, eventual consistency, operational resilience, and domain invariants.**
 
-I learned that strong architectures are not defined by the tools they use, but by how cleanly they handle failure, edge cases, and changing business requirements.
+🔎 Fact-Checker Moderation Queue
 
----
+The moderation queue enables fact-checkers to claim and verify posts.
 
-## Future Improvements
+![Fact Checker Moderation Queue](https://raw.githubusercontent.com/Grizzy100/Anivartee/main/client/public/photos/Fact%20moderation.png)
+💎 Subscription Plans
 
-Anivartee is actively evolving. To push it toward production-grade maturity, the following architectural upgrades are planned:
+Subscription tiers unlock additional analytics and creator features.
 
-- **Message Broker (RabbitMQ/Kafka):** Implementing the **Outbox Pattern** to replace synchronous internal HTTP calls with asynchronous events, ensuring zero data loss if a downstream service goes offline.
-- **Redis Caching Strategy:** Caching user ranks, rate limits, and hot-score leaderboards to protect the databases from read-heavy traffic spikes.
-- **API Gateway:** Centralizing authentication token validation, rate-limiting, and request routing.
-- **Circuit Breakers:** Preventing cascading failures across the synchronous service chain.
-- **Observability:** Centralized logging, distributed tracing (OpenTelemetry), and Prometheus metrics to monitor system health.
+![India Subscription](https://raw.githubusercontent.com/Grizzy100/Anivartee/main/client/public/photos/Screenshot%202026-03-07%20111141.png)
 
----
+![Netherlands Subscription](https://raw.githubusercontent.com/Grizzy100/Anivartee/main/client/public/photos/Screenshot%202026-03-07%20112324.png)
 
-## Running the Project
+![Singapore Subscription](https://raw.githubusercontent.com/Grizzy100/Anivartee/main/client/public/photos/Screenshot%202026-03-07%20112334.png)
 
-Ensure you have Docker and Node.js installed.
+![USA Subscription](https://raw.githubusercontent.com/Grizzy100/Anivartee/main/client/public/photos/Screenshot%202026-03-07%20112348.png)
 
-1. Clone the repository:
-   ```bash
-   git clone <repository-url>
-   cd Anivartee
-   ```
-2. Start the infrastructure (Databases):
-   ```bash
-   docker-compose up -d
-   ```
-3. Install dependencies and start the services.
+
+🛠 Tech Stack
+🧩 Backend
+
+Node.js
+
+Express
+
+TypeScript
+
+Prisma ORM
+
+🗄 Database
+
+PostgreSQL
+
+Database-per-service isolation:
+
+identity-service
+posts-service
+points-service
+payment-service
+
+Each service maintains its own schema and domain boundaries, forming a true microservice architecture.
+
+💻 Frontend
+
+Next.js
+
+React
+
+Tailwind CSS
+
+⚙ Infrastructure
+
+Docker
+
+Docker Compose
+
+Redis (caching + performance layer)
+
+Redis powers:
+
+⚡ session caching
+⚡ feed ranking acceleration
+⚡ reputation leaderboard caching
+⚡ subscription lookup caching
+
+🧱 System Architecture
+
+The backend follows a database-per-service microservice architecture.
+
+User Service
+     │
+Post Service
+     │
+Points Service
+     │
+Payment Service
+
+Each service operates within its bounded context and communicates via REST APIs, preparing the system for future event-driven communication.
+
+⭐ Core Features
+🧩 Unified Social + Moderation Ecosystem
+
+Anivartee merges content creation and moderation into a single ecosystem.
+
+Users do not simply consume content — they govern the truthfulness of the platform.
+
+This creates a self-regulating verification layer powered by community reputation.
+
+🛡 Moderation Queue & Claim System
+
+When content requires verification it enters a global moderation queue.
+
+Fact-checkers can claim posts, preventing duplicate verification work.
+
+Claim Workflow
+
+1️⃣ Post enters moderation queue
+2️⃣ Fact-checker claims the post
+3️⃣ System locks claim for 30 minutes
+4️⃣ Verification verdict submitted
+5️⃣ Claim closes
+
+If no verdict is submitted:
+
+claimExpiry.job.ts
+
+automatically releases the claim and returns the post to the queue.
+
+🧾 Event-Sourced Reputation Engine
+
+Instead of updating scores directly, Anivartee uses an event-sourced points engine.
+
+Reputation Model
+PointsLedger (immutable history)
+       ↓
+PointsBalance (materialized view)
+
+Benefits:
+
+✔ Complete auditability
+✔ Tamper-proof reputation
+✔ Fast O(1) score lookup
+
+🔥 Dynamic Algorithmic Feed
+
+The home feed uses a Reddit-style Hot Score algorithm.
+
+Ranking factors:
+
+👍 likes
+👀 views
+🕒 recency
+🛡 moderation state
+
+State transitions dynamically affect ranking:
+
+PENDING → UNDER_REVIEW → VERIFIED
+🔐 Authentication System
+
+Users can register and authenticate using the built-in system.
+
+Users can register as:
+
+👤 User
+🔎 Checker
+
+Checkers gain fact-verification privileges within the moderation system.
+
+⚠ Engineering Challenges
+⚡ Concurrency & Race Conditions
+
+Moderation claim logic introduced real-world concurrency problems.
+
+Example scenario:
+
+A claim expired but the cron job had not yet reaped it, leaving the record marked as active.
+
+Another checker attempting to claim the post triggered unique constraint violations.
+
+Solution
+
+✔ expiration evaluated at query time
+✔ database-level upsert locking
+
+This eliminated race conditions during simultaneous claims.
+
+🔗 Cross-Service State Synchronization
+
+Deleting posts in post-service could break references inside points-service.
+
+Solution: Soft Deletion
+deletedAt timestamp
+
+Posts disappear from feeds while maintaining ledger integrity.
+
+🧩 Breaking the Monolith
+
+The original monolith (social-service) was decomposed into:
+
+user-service
+post-service
+points-service
+payment-service
+
+This revealed hidden coupling chains:
+
+Post → Points → User
+
+The experience reinforced designing services based on:
+
+failure domains
+
+operational boundaries
+
+domain ownership
+
+🚀 Future Improvements
+📡 Event-Driven Architecture
+
+Introduce:
+
+RabbitMQ / Kafka
+
+Using the Outbox Pattern to replace synchronous service calls.
+
+⚡ Advanced Redis Caching
+
+Future layers:
+
+hot-score feed caching
+
+moderation queue caching
+
+reputation leaderboard caching
+
+🌐 API Gateway
+
+Centralized layer for:
+
+authentication
+
+routing
+
+rate limiting
+
+🛑 Circuit Breakers
+
+Prevent cascading failures between services.
+
+📊 Observability
+
+Planned integration:
+
+OpenTelemetry tracing
+
+Prometheus metrics
+
+centralized logging
+
+🧪 Running the Project
+Clone repository
+git clone <repository-url>
+cd Anivartee
+Start infrastructure
+docker-compose up -d
+Install dependencies
+
+Start each service individually.
+
+🧠 Engineering Takeaway
+
+Designing Anivartee changed how I think about system design.
+
+I stopped thinking in terms of:
+
+controllers → endpoints
+
+and started thinking in terms of:
+
+🧱 system boundaries
+🔁 eventual consistency
+⚙ operational resilience
+🔒 domain invariants
+
+A strong architecture is defined not by the tools it uses —
+but by how gracefully it handles failure, scale, and change.

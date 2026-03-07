@@ -1,7 +1,6 @@
 <div align="center">
 
-<img src="https://readme-typing-svg.demolab.com?font=Fira+Code&weight=700&size=40&pause=1000&color=6366F1&center=true&vCenter=true&width=700&lines=Anivartee;Where+Truth+Competes;For+Visibility" alt="Anivartee" />
-
+<img src="https://raw.githubusercontent.com/Grizzy100/Anivartee/main/client/app/favicon.ico" width="80" alt="Anivartee" />
 <br/>
 
 **A community-driven platform that transforms truth verification into a collaborative, reputation-powered game.**

@@ -77,11 +77,11 @@ Anivartee merges social media mechanics with crowd-sourced fact-checking into a 
 <summary><b>💎 Region-Based Subscription Plans</b></summary>
 <br/>
 
-| India 🇮🇳 | Netherlands 🇳🇱 |
+| India  | Netherlands |
 |---|---|
 | ![India](https://raw.githubusercontent.com/Grizzy100/Anivartee/main/client/public/photos/Screenshot%202026-03-07%20111141.png) | ![Netherlands](https://raw.githubusercontent.com/Grizzy100/Anivartee/main/client/public/photos/Screenshot%202026-03-07%20112324.png) |
 
-| Singapore 🇸🇬 | USA 🇺🇸 |
+| Singapore  | USA  |
 |---|---|
 | ![Singapore](https://raw.githubusercontent.com/Grizzy100/Anivartee/main/client/public/photos/Screenshot%202026-03-07%20112334.png) | ![USA](https://raw.githubusercontent.com/Grizzy100/Anivartee/main/client/public/photos/Screenshot%202026-03-07%20112348.png) |
 

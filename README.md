@@ -270,36 +270,6 @@ Pricing adapts per region using a `(plan, regionTier)` pricing matrix supporting
 
 ---
 
-## 📁 Repository Structure
-
-```
-Anivartee/
-├── client/                         # Next.js 16 frontend
-│   ├── app/
-│   │   ├── (auth)/                 # Login, signup, password reset, OAuth callback
-│   │   ├── (dashboard)/
-│   │   │   ├── user/               # User feed & posts
-│   │   │   ├── fact-checker/       # Fact-checker feed + moderation queue
-│   │   │   └── admin/              # Admin panel (scaffolded)
-│   │   ├── pricing/                # Subscription tiers
-│   │   └── checkout/               # Stripe checkout
-│   ├── components/
-│   │   ├── dashboard/              # Feed, moderation, posts, comments, sidebar
-│   │   └── ui/                     # shadcn/Radix reusable components
-│   └── lib/
-│       ├── api/                    # Typed API client functions per service
-│       ├── auth/                   # Client-side auth helpers & contexts
-│       └── hooks/                  # Custom React hooks
-│
-└── server/
-    ├── user-service/    :3001       # Authentication, JWT, Google OAuth, profiles
-    ├── post-service/    :3002       # Posts, feed algorithm, moderation queue, comments
-    ├── points-service/  :3004       # Reputation ledger, ranks, leaderboard
-    └── payment-service/ :3005       # Stripe subscriptions, region pricing, webhooks
-```
-
----
-
 ## ⚠️ Engineering Challenges Solved
 
 ### ⚡ Concurrency & Race Conditions in Claim Logic

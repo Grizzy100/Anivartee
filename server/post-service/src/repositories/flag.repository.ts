@@ -79,7 +79,7 @@ export class FlagRepository {
     }
   }
 
-  async calculateWeightedFlagScore(linkId: string): Promise<{
+  async calculateWeightedFlagScore(linkId: string, weightedLikeScore: number): Promise<{
     totalFlags: number;
     weightedScore: number;
     shouldBeFlagged: boolean;
@@ -87,23 +87,13 @@ export class FlagRepository {
     try {
       const flags = await this.getFlagsByLink(linkId);
 
-      // Get post's total likes
-      const post = await prisma.link.findFirst({
-        where: { id: linkId, deletedAt: null },
-        select: { totalLikes: true }
-      });
-
-      if (!post) {
-        throw new NotFoundError('Post not found');
-      }
-
       // Calculate weighted score
       const weightedScore = flags.reduce((total, flag) => {
         const weight = this.getFlagWeight(flag.flaggerRole, flag.flaggerRankLevel);
         return total + weight;
       }, 0);
 
-      const shouldBeFlagged = weightedScore > post.totalLikes;
+      const shouldBeFlagged = weightedScore > weightedLikeScore;
 
       return {
         totalFlags: flags.length,
@@ -119,17 +109,17 @@ export class FlagRepository {
 
   private getFlagWeight(role: string, rankLevel: number): number {
     if (role === 'USER') {
-      // User rank weights: [NOVICE, CONTRIBUTOR, RESEARCHER, TRUSTED]
-      const userWeights = [0.5, 0.8, 1.3, 2.0];
-      return userWeights[rankLevel] || 0.5;
+      // User rank weights: [NOVICE, CONTRIBUTOR, RESEARCHER, TRUSTED, ELITE, LEGEND]
+      const userWeights = [1.0, 1.2, 1.4, 1.6, 1.8, 2.0];
+      return userWeights[rankLevel] ?? 1.0;
     }
 
     if (role === 'FACT_CHECKER') {
-      // Fact-checker rank weights: [APPRENTICE, ANALYST, INVESTIGATOR, SPECIALIST, SENTINEL]
-      const checkerWeights = [1.0, 1.2, 1.5, 2.0, 3.5];
-      return checkerWeights[rankLevel] || 1.0;
+      // Fact-checker rank weights: [APPRENTICE, ANALYST, INVESTIGATOR, SPECIALIST, SENTINEL, GUARDIAN]
+      const checkerWeights = [1.2, 1.5, 2.0, 2.5, 3.0, 3.5];
+      return checkerWeights[rankLevel] ?? 1.2;
     }
 
-    return 0.5; // Default
+    return 1.0; // Default
   }
 }

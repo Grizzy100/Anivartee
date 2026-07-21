@@ -1,9 +1,11 @@
-import dotenv from 'dotenv';
-import Stripe from 'stripe';
-import * as fs from 'fs';
+import dotenv from 'dotenv';  //Loads env variables
+import Stripe from 'stripe';  //Imports Stripe's Node.js SDK.
+import * as fs from 'fs';   //to read, write files
 
 dotenv.config();
 
+
+//client creation
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string, {
     apiVersion: '2023-10-16' as any,
 });
@@ -17,7 +19,7 @@ async function main() {
         description: 'Advanced Analytics and Features',
     });
 
-    console.log(`✅ Created Product: ${product.id}`);
+    console.log(`Created Product: ${product.id}`);
 
     // 2. Create the Prices
     const pricesToCreate = [
@@ -39,7 +41,7 @@ async function main() {
             recurring: { interval: 'month' },
         });
         results[`STRIPE_PRICE_ID_${p.lookup_key}`] = stripePrice.id;
-        console.log(`✅ Created Price for ${p.lookup_key}: ${stripePrice.id}`);
+        console.log(`Created Price for ${p.lookup_key}: ${stripePrice.id}`);
     }
 
 
@@ -49,3 +51,11 @@ async function main() {
 }
 
 main().catch(console.error);
+
+
+
+
+
+
+//This is a script that helps you create new PRODUCT and prices, regions etc
+//for Stripe so that it can verify ki yahi product hai

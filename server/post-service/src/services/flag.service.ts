@@ -46,8 +46,9 @@ export class FlagService {
       );
 
       // 6. Calculate weighted flag score and check if should be FLAGGED
+      const weightedLikeScore = await this.getWeightedLikeScore(linkId);
       const { shouldBeFlagged, weightedScore } = 
-        await this.flagRepo.calculateWeightedFlagScore(linkId);
+        await this.flagRepo.calculateWeightedFlagScore(linkId, weightedLikeScore);
 
       // 7. Update post status if threshold exceeded
       if (shouldBeFlagged && post.status !== 'FLAGGED') {
@@ -88,8 +89,9 @@ export class FlagService {
       await this.flagRepo.deleteFlag(linkId, userId);
 
       // 4. Recalculate weighted score
+      const weightedLikeScore = await this.getWeightedLikeScore(linkId);
       const { shouldBeFlagged, weightedScore } = 
-        await this.flagRepo.calculateWeightedFlagScore(linkId);
+        await this.flagRepo.calculateWeightedFlagScore(linkId, weightedLikeScore);
 
       // 5. Update post status if no longer exceeds threshold
       if (!shouldBeFlagged && post.status === 'FLAGGED') {
@@ -106,10 +108,29 @@ export class FlagService {
 
   async getFlagScore(linkId: string) {
     try {
-      return await this.flagRepo.calculateWeightedFlagScore(linkId);
+      const weightedLikeScore = await this.getWeightedLikeScore(linkId);
+      return await this.flagRepo.calculateWeightedFlagScore(linkId, weightedLikeScore);
     } catch (error: any) {
       logger.error('Error in getFlagScore service:', error);
       throw error;
+    }
+  }
+
+  private async getWeightedLikeScore(linkId: string): Promise<number> {
+    try {
+      const likerIds = await this.postRepo.getLikerUserIds(linkId);
+      if (likerIds.length === 0) return 0;
+
+      const rankMap = await this.pointsClient.getUserRanksByIds(likerIds);
+      let totalWeight = 0;
+      for (const userId of likerIds) {
+        const rank = rankMap.get(userId);
+        totalWeight += rank?.limits?.flagWeight ?? 1.0;
+      }
+      return totalWeight;
+    } catch (error) {
+      logger.error('Failed to get weighted like score:', error);
+      return 0;
     }
   }
 }

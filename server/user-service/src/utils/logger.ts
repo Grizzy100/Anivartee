@@ -131,3 +131,8 @@ export function logRequest(
 }
 
 export default logger;
+
+
+// HTTP 500+ $\rightarrow$ error
+// HTTP 400-499 $\rightarrow$ warn
+// HTTP 100-399 $\rightarrow$ info

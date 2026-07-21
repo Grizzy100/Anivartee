@@ -45,3 +45,8 @@ generated/
 # Docker
 # ===============================
 docker-data/
+
+
+
+fix-statuses.sql
+fix-post-statuses.ts

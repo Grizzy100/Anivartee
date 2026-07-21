@@ -18,6 +18,8 @@ const postRepo = new PostRepository();
 const commentRepo = new CommentRepository();
 const flagRepo = new FlagRepository();
 const pointsClient = new PointsClient();
+
+//decoupled from DB. By passing them in, the service is decoupled from how the database is connected. If we want to write a unit test for InteractionService, we can pass fake ("mocked") versions of these repositories without spinning up a real database.
 const interactionService = new InteractionService(
   interactionRepo,
   postRepo,

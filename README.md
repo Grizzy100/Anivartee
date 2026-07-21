@@ -77,11 +77,11 @@ Anivartee merges social media mechanics with crowd-sourced fact-checking into a 
 <summary><b>💎 Region-Based Subscription Plans</b></summary>
 <br/>
 
-| India  | Netherlands |
+| India 🇮🇳 | Netherlands 🇳🇱 |
 |---|---|
 | ![India](https://raw.githubusercontent.com/Grizzy100/Anivartee/main/client/public/photos/Screenshot%202026-03-07%20111141.png) | ![Netherlands](https://raw.githubusercontent.com/Grizzy100/Anivartee/main/client/public/photos/Screenshot%202026-03-07%20112324.png) |
 
-| Singapore  | USA  |
+| Singapore 🇸🇬 | USA 🇺🇸 |
 |---|---|
 | ![Singapore](https://raw.githubusercontent.com/Grizzy100/Anivartee/main/client/public/photos/Screenshot%202026-03-07%20112334.png) | ![USA](https://raw.githubusercontent.com/Grizzy100/Anivartee/main/client/public/photos/Screenshot%202026-03-07%20112348.png) |
 
@@ -266,6 +266,36 @@ Pricing adapts per region using a `(plan, regionTier)` pricing matrix supporting
 | Docker + Compose | Containerisation & orchestration |
 | Redis 7 Alpine | Rate limiting, caching, leaderboard |
 | PostgreSQL 16 | Primary data store (isolated per service) |
+
+---
+
+## 📁 Repository Structure
+
+```
+Anivartee/
+├── client/                         # Next.js 16 frontend
+│   ├── app/
+│   │   ├── (auth)/                 # Login, signup, password reset, OAuth callback
+│   │   ├── (dashboard)/
+│   │   │   ├── user/               # User feed & posts
+│   │   │   ├── fact-checker/       # Fact-checker feed + moderation queue
+│   │   │   └── admin/              # Admin panel (scaffolded)
+│   │   ├── pricing/                # Subscription tiers
+│   │   └── checkout/               # Stripe checkout
+│   ├── components/
+│   │   ├── dashboard/              # Feed, moderation, posts, comments, sidebar
+│   │   └── ui/                     # shadcn/Radix reusable components
+│   └── lib/
+│       ├── api/                    # Typed API client functions per service
+│       ├── auth/                   # Client-side auth helpers & contexts
+│       └── hooks/                  # Custom React hooks
+│
+└── server/
+    ├── user-service/    :3001       # Authentication, JWT, Google OAuth, profiles
+    ├── post-service/    :3002       # Posts, feed algorithm, moderation queue, comments
+    ├── points-service/  :3004       # Reputation ledger, ranks, leaderboard
+    └── payment-service/ :3005       # Stripe subscriptions, region pricing, webhooks
+```
 
 ---
 

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, memo } from "react";
 import { TrendingUp } from "lucide-react";
 import { BouncingDots } from "@/components/ui/bouncing-dots";
 import { getTrendingFeed, type FeedPost, type LinkStatus } from "@/lib/api/feed";
@@ -28,7 +28,7 @@ function timeAgo(dateStr: string): string {
 
 // ─── Component ────────────────────────────────────────────────────────────────
 
-export function TrendingPanel() {
+export const TrendingPanel = memo(function TrendingPanel() {
   const [posts, setPosts] = useState<FeedPost[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -96,4 +96,4 @@ export function TrendingPanel() {
       )}
     </div>
   );
-}
+});

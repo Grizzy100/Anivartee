@@ -1,5 +1,6 @@
 "use client";
 
+import { memo } from "react";
 import {
   motion,
   MotionValue,
@@ -23,7 +24,7 @@ interface Props {
   motionY: MotionValue<number>;
 }
 
-export default function ScreenshotCard({
+const ScreenshotCard = memo(function ScreenshotCard({
   src,
   x,
   y,
@@ -45,6 +46,11 @@ export default function ScreenshotCard({
   const depthBrightness = 1 - depth * 0.08;
   const depthSaturation = 1 - depth * 0.05;
 
+  const activeBlur = blur * 0.6;
+  const filterStyle = activeBlur > 0.08
+    ? `blur(${activeBlur}px) brightness(${depthBrightness}) saturate(${depthSaturation})`
+    : `brightness(${depthBrightness}) saturate(${depthSaturation})`;
+
   return (
     <motion.div
       className="absolute group will-change-transform"
@@ -61,11 +67,7 @@ export default function ScreenshotCard({
         scale,
         opacity,
 
-        filter: `
-          blur(${blur * 0.6}px)
-          brightness(${depthBrightness})
-          saturate(${depthSaturation})
-        `,
+        filter: filterStyle,
 
         transformPerspective: 1400,
         zIndex: 1,
@@ -162,4 +164,6 @@ export default function ScreenshotCard({
       </motion.div>
     </motion.div>
   );
-}
+});
+
+export default ScreenshotCard;

@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useState, memo } from "react";
 import { Calendar } from "@/components/ui/calender";
 import { BouncingDots } from "@/components/ui/bouncing-dots";
 import {
@@ -41,7 +41,7 @@ function intensityDot(total: number): string {
 
 // ─── Component ───────────────────────────────────────────────────────────────
 
-export function CalendarWidget({ className }: { className?: string }) {
+export const CalendarWidget = memo(function CalendarWidget({ className }: { className?: string }) {
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const [calendar, setCalendar] = useState<CalendarResponse>(EMPTY_CALENDAR);
   const [loading, setLoading] = useState(false);
@@ -155,7 +155,7 @@ export function CalendarWidget({ className }: { className?: string }) {
       </div>
     </div>
   );
-}
+});
 
 function StatRow({ label, value }: { label: string; value: number }) {
   if (value === 0) return null;

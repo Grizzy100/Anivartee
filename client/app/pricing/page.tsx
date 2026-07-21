@@ -1,5 +1,4 @@
 //client\app\pricing\page.tsx
-"use client";
 
 import { PricingSection } from "@/components/ui/pricing";
 

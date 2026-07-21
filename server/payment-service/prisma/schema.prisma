@@ -1,5 +1,5 @@
 generator client {
-  provider = "prisma-client-js"
+  provider = "prisma-client"
   output   = "../src/generated/prisma"
 }
 
@@ -8,6 +8,7 @@ datasource db {
   schemas  = ["payments"]
 }
 
+//Both Stripe (stripeCustomerId) and Local server(userId) has its own DB. This table matches them up
 model UserPaymentCustomer {
   id               String         @id @default(uuid()) @db.Uuid
   userId           String         @unique @db.Uuid
@@ -20,6 +21,8 @@ model UserPaymentCustomer {
   @@schema("payments")
 }
 
+
+//As he name suggests, 
 model SubscriptionPlan {
   id            String               @id @default(uuid()) @db.Uuid
   name          String               @db.VarChar(100)
@@ -40,6 +43,8 @@ model SubscriptionPlan {
   @@index([active])
   @@schema("payments")
 }
+
+
 
 model PlanPrice {
   id            String           @id @default(uuid()) @db.Uuid
@@ -89,6 +94,8 @@ model Subscription {
   @@schema("payments")
 }
 
+
+//Just a backup before actually marking the user as Active in subscription
 model PaymentEvent {
   id            String    @id @default(uuid()) @db.Uuid
   stripeEventId String    @unique @db.VarChar(255)

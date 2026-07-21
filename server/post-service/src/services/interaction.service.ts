@@ -49,7 +49,8 @@ export class InteractionService {
 
     // Revert FLAGGED → PENDING if likes now outweigh flags
     if (post.status === 'FLAGGED') {
-      const { shouldBeFlagged } = await this.flagRepo.calculateWeightedFlagScore(linkId);
+      const weightedLikeScore = await this.getWeightedLikeScore(linkId);
+      const { shouldBeFlagged } = await this.flagRepo.calculateWeightedFlagScore(linkId, weightedLikeScore);
       if (!shouldBeFlagged) {
         await this.postRepo.updateStatus(linkId, 'PENDING');
         logger.info(`Post ${linkId} reverted to PENDING (likes increased)`);
@@ -79,7 +80,8 @@ export class InteractionService {
     await this.postRepo.decrementLikes(linkId);
 
     // Check if should become FLAGGED
-    const { shouldBeFlagged } = await this.flagRepo.calculateWeightedFlagScore(linkId);
+    const weightedLikeScore = await this.getWeightedLikeScore(linkId);
+    const { shouldBeFlagged } = await this.flagRepo.calculateWeightedFlagScore(linkId, weightedLikeScore);
     if (shouldBeFlagged && post.status !== 'FLAGGED') {
       await this.postRepo.updateStatus(linkId, 'FLAGGED');
       logger.info(`Post ${linkId} changed to FLAGGED (likes decreased)`);
@@ -119,7 +121,8 @@ export class InteractionService {
     await this.interactionRepo.createFlag(linkId, userId, role, rankLevel);
 
     // Check if should become FLAGGED
-    const { shouldBeFlagged } = await this.flagRepo.calculateWeightedFlagScore(linkId);
+    const weightedLikeScore = await this.getWeightedLikeScore(linkId);
+    const { shouldBeFlagged } = await this.flagRepo.calculateWeightedFlagScore(linkId, weightedLikeScore);
     if (shouldBeFlagged && post.status !== 'FLAGGED') {
       await this.postRepo.updateStatus(linkId, 'FLAGGED');
       logger.info(`Post ${linkId} changed to FLAGGED (flags increased)`);
@@ -145,7 +148,8 @@ export class InteractionService {
 
     // Revert FLAGGED → PENDING if flags no longer outweigh likes
     if (post.status === 'FLAGGED') {
-      const { shouldBeFlagged } = await this.flagRepo.calculateWeightedFlagScore(linkId);
+      const weightedLikeScore = await this.getWeightedLikeScore(linkId);
+      const { shouldBeFlagged } = await this.flagRepo.calculateWeightedFlagScore(linkId, weightedLikeScore);
       if (!shouldBeFlagged) {
         await this.postRepo.updateStatus(linkId, 'PENDING');
         logger.info(`Post ${linkId} reverted to PENDING (flags decreased)`);
@@ -261,5 +265,23 @@ export class InteractionService {
       .catch(err => logger.error('Failed to award points:', err));
 
     logger.info(`User ${userId} shared post ${linkId} on ${platform || 'unknown'}`);
+  }
+
+  private async getWeightedLikeScore(linkId: string): Promise<number> {
+    try {
+      const likerIds = await this.postRepo.getLikerUserIds(linkId);
+      if (likerIds.length === 0) return 0;
+
+      const rankMap = await this.pointsClient.getUserRanksByIds(likerIds);
+      let totalWeight = 0;
+      for (const userId of likerIds) {
+        const rank = rankMap.get(userId);
+        totalWeight += rank?.limits?.flagWeight ?? 1.0;
+      }
+      return totalWeight;
+    } catch (error) {
+      logger.error('Failed to get weighted like score:', error);
+      return 0;
+    }
   }
 }

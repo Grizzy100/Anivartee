@@ -18,6 +18,8 @@ export { MyPostsPage } from "./MyPostsPage";
 
 // Utilities
 export { useFeedLoader } from "./useFeedLoader";
+export { FeedProvider, useFeedContext } from "./FeedContext";
+
 export {
   feedPostToPostData,
   queueItemToPostData,

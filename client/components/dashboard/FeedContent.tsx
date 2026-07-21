@@ -1,3 +1,4 @@
+import React, { memo } from "react";
 import { Feed } from "./Feed";
 import { BouncingDots } from "@/components/ui/bouncing-dots";
 import type { PostData, DashboardRole } from "./types";
@@ -23,7 +24,7 @@ interface FeedContentProps {
  * Shared feed renderer that handles loading, error, empty, and populated
  * states identically across user and fact-checker dashboards.
  */
-export function FeedContent({
+export const FeedContent = memo(function FeedContent({
   posts,
   role,
   loading,
@@ -75,4 +76,4 @@ export function FeedContent({
       hideFactCheckCards={hideFactCheckCards}
     />
   );
-}
+});

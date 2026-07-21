@@ -5,6 +5,7 @@ import { loginSchema } from '../validators/loginSchema.js';
 import { forgotPasswordSchema } from '../validators/forgotPasswordSchema.js';
 import { resetPasswordSchema } from '../validators/resetPasswordSchema.js';
 import { logger } from '../utils/logger.js';
+import { env } from '../config/env.js';
 
 const authService = new AuthService();
 
@@ -187,6 +188,47 @@ export class AuthController {
         success: false,
         error: error.message || 'Password reset failed',
       });
+    }
+  }
+
+  /**
+   * Handle the callback redirection from Google OAuth.
+   * On success, generates tokens, stores the refresh token in an HTTP-only cookie,
+   * and redirects to the frontend dashboard.
+   */
+  async googleCallback(req: Request, res: Response) {
+    try {
+      if (!req.user) {
+        logger.warn('Google OAuth callback triggered without user context');
+        return res.redirect(`${env.FRONTEND_URL}/login?error=no_user`);
+      }
+
+      const oauthUser = req.user as any;
+      const { accessToken, refreshToken } = await authService.loginOAuth({
+        id: oauthUser.id,
+        role: oauthUser.role,
+      });
+
+      // Set refresh token in HttpOnly cookie
+      res.cookie('refreshToken', refreshToken, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'lax',
+        path: '/',
+        maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+      });
+
+      // Redirect user to the frontend dashboard.
+      // Next.js client will silently call /refresh on load to retrieve the access token.
+      res.redirect(`${env.FRONTEND_URL}/dashboard`);
+    } catch (error: any) {
+      logger.error('Google OAuth callback controller error:', error);
+      
+      const errorCode = error.message === 'Account is disabled' 
+        ? 'account_disabled' 
+        : 'google_auth_failed';
+
+      res.redirect(`${env.FRONTEND_URL}/login?error=${errorCode}`);
     }
   }
 }

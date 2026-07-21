@@ -1,4 +1,4 @@
-import React from "react";
+import React, { memo } from "react";
 import { PostCard } from "./PostCard";
 import { FactCheckPostCard } from "./FactCheckPostCard";
 import type { PostData, DashboardRole } from "./types";
@@ -20,7 +20,7 @@ interface FeedProps {
   hideFactCheckCards?: boolean;
 }
 
-export function Feed({ posts, role, showStatus, currentUserId, onPostDeleted, hideFactCheckCards }: FeedProps) {
+export const Feed = memo(function Feed({ posts, role, showStatus, currentUserId, onPostDeleted, hideFactCheckCards }: FeedProps) {
   return (
     <div id="tour-feed" className="space-y-4 pb-8">
       {posts.map((post) => (
@@ -43,4 +43,4 @@ export function Feed({ posts, role, showStatus, currentUserId, onPostDeleted, hi
       ))}
     </div>
   );
-}
+});

@@ -1,21 +1,13 @@
 "use client";
 
 import { FeedContent } from "@/components/dashboard/FeedContent";
-import { useFeedLoader } from "@/components/dashboard/useFeedLoader";
-import { feedPostToPostData } from "@/components/dashboard/adapters";
+import { useFeedContext } from "@/components/dashboard/FeedContext";
 import { DashboardTopBar } from "@/components/dashboard/DashboardTopBar";
-import { getHomeFeed } from "@/lib/api/feed";
 import { useAuth } from "@/lib/auth/AuthContext";
-
-// Stable fetcher — avoids re-creating on every render
-const fetchFeedItems = () => getHomeFeed().then((r) => r.posts);
 
 export default function UserDashboardPage() {
   const { user } = useAuth();
-  const { posts, loading, error, retry, removePost, setSearchQuery } = useFeedLoader(
-    fetchFeedItems,
-    feedPostToPostData
-  );
+  const { posts, loading, error, retry, removePost, setSearchQuery } = useFeedContext();
 
   return (
     <>

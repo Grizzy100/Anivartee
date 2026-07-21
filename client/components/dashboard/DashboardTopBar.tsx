@@ -17,7 +17,7 @@ interface DashboardTopBarProps {
 
 // ─── Component ───────────────────────────────────────────────────────────────
 import { IoMdHelpCircleOutline } from "react-icons/io";
-import { useProductTour } from "@/lib/contexts/ProductTourContext";
+import { useProductTourActions } from "@/lib/contexts/ProductTourContext";
 
 /**
  * Top bar that sits above the feed — intentionally designed to *not* look
@@ -32,7 +32,7 @@ export function DashboardTopBar({
   const [query, setQuery] = useState("");
   const [searchFocused, setSearchFocused] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
-  const { startTour } = useProductTour();
+  const { startTour } = useProductTourActions();
   const debounceRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
   // Debounced search

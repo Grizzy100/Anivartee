@@ -58,7 +58,7 @@ async function gracefulShutdown(signal: string) {
 
 app.listen(PORT, () => {
   logger.info(`Payment service running on port ${PORT}`);
-  logger.info(`🔗 API: http://localhost:${PORT}/api`);
+  logger.info(`API: http://localhost:${PORT}/api`);
 });
 
 process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));

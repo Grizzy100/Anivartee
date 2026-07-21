@@ -297,8 +297,14 @@ export function PricingSection({
         }
     };
 
+    const contextValue = React.useMemo(() => ({
+        isMonthly, 
+        setIsMonthly, 
+        currentRegion: regionTier 
+    }), [isMonthly, setIsMonthly, regionTier]);
+
     return (
-        <PricingContext.Provider value={{ isMonthly, setIsMonthly, currentRegion: regionTier }}>
+        <PricingContext.Provider value={contextValue}>
             <div className="relative w-full bg-background dark:bg-neutral-950 py-8 sm:py-12">
                 <InteractiveStarfield />
 

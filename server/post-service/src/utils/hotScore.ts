@@ -11,7 +11,7 @@
  */
 
 // 2025-01-01T00:00:00 UTC in seconds
-const PLATFORM_EPOCH = 1735689600;
+const PLATFORM_EPOCH = 1735689600;    // January 1, 2025
 
 const STATUS_MULTIPLIERS: Record<string, number> = {
   VALIDATED: 1.5,
@@ -36,9 +36,9 @@ export function computeHotScore(input: HotScoreInput): number {
   const engagementScore = Math.log10(Math.max(engagement, 1));
 
   const multiplier = STATUS_MULTIPLIERS[status] ?? 1.0;
+ 
+  const createdAtEpoch = Math.floor(createdAt.getTime() / 1000);    //milliseconds elapsed since January 1, 1970 
+  const timeScore = (createdAtEpoch - PLATFORM_EPOCH) / 86400;     //age of the post as the number of days elapsed since the epoch.
 
-  const createdAtEpoch = Math.floor(createdAt.getTime() / 1000);
-  const timeScore = (createdAtEpoch - PLATFORM_EPOCH) / 86400;
-
-  return engagementScore * multiplier + timeScore;
+  return engagementScore * multiplier + timeScore;  
 }

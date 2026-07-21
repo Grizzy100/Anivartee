@@ -28,3 +28,9 @@ export class UserClient {
   }
 }
 
+//This file is a messenger (or API client) 
+// that allows the payment-service to talk 
+// directly to the user-service over HTTP.
+
+
+

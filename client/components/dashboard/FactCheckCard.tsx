@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useCallback, memo } from "react";
 import {
     ShieldCheck,
     ShieldX,
@@ -77,8 +77,9 @@ interface FactCheckCardProps {
     postTitle: string;
 }
 
-export function FactCheckCard({ factCheck, postTitle }: FactCheckCardProps) {
+function FactCheckCardComponent({ factCheck, postTitle }: FactCheckCardProps) {
     const [expanded, setExpanded] = useState(false);
+    const toggleExpanded = useCallback(() => setExpanded((e) => !e), []);
     const cfg = VERDICT_CONFIG[factCheck.verdict];
     const { Icon, StatusIcon, borderColor, badgeBg, iconColor, accentBg, dotColor } = cfg;
 
@@ -166,7 +167,7 @@ export function FactCheckCard({ factCheck, postTitle }: FactCheckCardProps) {
                             </p>
                             {factCheck.description!.length > 180 && (
                                 <button
-                                    onClick={() => setExpanded(!expanded)}
+                                    onClick={toggleExpanded}
                                     className="flex items-center gap-1 text-[10px] text-primary hover:text-primary/80 mt-1.5 transition-colors font-medium"
                                 >
                                     {expanded ? (
@@ -226,3 +227,5 @@ export function FactCheckCard({ factCheck, postTitle }: FactCheckCardProps) {
         </div>
     );
 }
+
+export const FactCheckCard = memo(FactCheckCardComponent);

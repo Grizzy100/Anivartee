@@ -382,4 +382,18 @@ export class PostRepository {
       return 0;
     }
   }
+
+  /** Get user IDs of all users who liked a post. */
+  async getLikerUserIds(linkId: string): Promise<string[]> {
+    try {
+      const likes = await prisma.linkLike.findMany({
+        where: { linkId },
+        select: { userId: true }
+      });
+      return likes.map(l => l.userId);
+    } catch (error: any) {
+      logger.error('Database error in post.getLikerUserIds:', error);
+      throw new DatabaseError('Failed to fetch liker user IDs');
+    }
+  }
 }

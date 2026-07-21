@@ -322,7 +322,7 @@ export class AuthService {
           tokenHash,
           expiresAt: new Date(
             Date.now() +
-              CONSTANTS.RESET_TOKEN_EXPIRY_HOURS * 60 * 60 * 1000
+            CONSTANTS.RESET_TOKEN_EXPIRY_HOURS * 60 * 60 * 1000
           ),
         },
       });
@@ -396,5 +396,45 @@ export class AuthService {
       logger.error('Reset password error:', error);
       throw error;
     }
+  }
+
+  /**
+   * Handle session and token creation for OAuth logins.
+   * Validates user account status and logs them in securely.
+   */
+  async loginOAuth(user: { id: string; role: string }) {
+    // 1. Fetch user to verify account status (safety check)
+    const existingUser = await prisma.user.findUnique({
+      where: { id: user.id },
+      select: { status: true },
+    });
+
+    if (!existingUser) {
+      throw new AuthenticationError('User account not found');
+    }
+
+    if (existingUser.status === 'DISABLED') {
+      throw new AuthenticationError('Account is disabled');
+    }
+
+    // 2. Generate new access and refresh tokens
+    const { accessToken, refreshToken } = generateTokens({
+      userId: user.id,
+      role: user.role,
+    });
+
+    // 3. Store refresh token hash in database for session tracking
+    const refreshTokenHash = hashToken(refreshToken);
+    await prisma.session.create({
+      data: {
+        userId: user.id,
+        refreshTokenHash,
+        expiresAt: new Date(
+          Date.now() + CONSTANTS.SESSION_EXPIRY_DAYS * 24 * 60 * 60 * 1000
+        ),
+      },
+    });
+
+    return { accessToken, refreshToken };
   }
 }

@@ -1,10 +1,7 @@
 // server/user-service/src/services/email.service.ts
-console.log("LOADED FILE:", import.meta.url);
 import nodemailer from 'nodemailer';
 import { env } from '../config/env.js';
 import { logger } from '../utils/logger.js';
-
-console.log("EMAIL TEMPLATE VERSION: v2.0 MODERN");
 
 const LOGO_URL =
   `${env.FRONTEND_URL}/logo.png` ||
@@ -22,9 +19,9 @@ const transporter = nodemailer.createTransport({
 
 transporter.verify((error) => {
   if (error) {
-    console.error("[EmailService] SMTP FAILED:", error);
+    logger.error("[EmailService] SMTP FAILED:", error);
   } else {
-    console.log("[EmailService] SMTP READY");
+    logger.info("[EmailService] SMTP READY");
   }
 });
 

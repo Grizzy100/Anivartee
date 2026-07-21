@@ -56,6 +56,7 @@ export class ActivityController {
    * GET /api/internal/activity/:userId/calendar?year=2026&month=2   (internal)
    * Same data but for any user; intended for service-to-service calls.
    */
+  //Retrieves another user's calendar history dynamically (used by other services like Point-service).
   async getCalendarInternal(req: Request, res: Response) {
     try {
       const userId = getParam(req.params.userId);

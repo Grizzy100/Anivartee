@@ -39,7 +39,8 @@ export function CreatePostModal({ open, onClose, onCreated }: CreatePostModalPro
   // Auto-focus title on open
   useEffect(() => {
     if (open) {
-      setTimeout(() => titleRef.current?.focus(), 100);
+      const timer = setTimeout(() => titleRef.current?.focus(), 100);
+      return () => clearTimeout(timer);
     }
   }, [open]);
 
@@ -56,7 +57,7 @@ export function CreatePostModal({ open, onClose, onCreated }: CreatePostModalPro
     }
   }, [open]);
 
-  // Close on Escape
+  // Close on Escape - properly detached and prevents listener spam
   useEffect(() => {
     if (!open) return;
     const handler = (e: KeyboardEvent) => {
@@ -64,7 +65,7 @@ export function CreatePostModal({ open, onClose, onCreated }: CreatePostModalPro
     };
     window.addEventListener("keydown", handler);
     return () => window.removeEventListener("keydown", handler);
-  }, [open, onClose]);
+  }, [open]); // Removed onClose to prevent listener re-attachment spam
 
   const addSource = useCallback(() => {
     const trimmed = sourceInput.trim();

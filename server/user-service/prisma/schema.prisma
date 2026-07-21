@@ -25,7 +25,7 @@ enum AccountStatus {
 }
 
 model User {
-  id String @id @default(uuid()) @db.Uuid
+  id String @id @default(uuid()) @db.Uuid //universally unique identifier
 
   email        String @unique @db.VarChar(255)
   username     String @unique @db.VarChar(32)
@@ -149,15 +149,15 @@ model OAuthAccount {
   userId String @db.Uuid
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  provider String @db.VarChar(50) // "google", "github", etc.
-  providerAccountId String @db.Text // unique ID from provider
-  email String? @db.VarChar(255) // optional email from provider
-  name String? @db.VarChar(255) // optional name from provider
-  picture String? @db.Text // optional profile picture URL
+  provider          String  @db.VarChar(50) // "google", "github", etc.
+  providerAccountId String  @db.Text // unique ID from provider
+  email             String? @db.VarChar(255) // optional email from provider
+  name              String? @db.VarChar(255) // optional name from provider
+  picture           String? @db.Text // optional profile picture URL
 
-  accessToken String? @db.Text // optional access token for API calls
-  refreshToken String? @db.Text // optional refresh token
-  expiresAt DateTime? // token expiration
+  accessToken  String?   @db.Text // optional access token for API calls
+  refreshToken String?   @db.Text // optional refresh token
+  expiresAt    DateTime? // token expiration
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

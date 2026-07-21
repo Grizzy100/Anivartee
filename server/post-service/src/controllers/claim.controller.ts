@@ -14,7 +14,7 @@ export class ClaimController {
   async claimPost(req: AuthRequest, res: Response) {
     try {
       const postId = getParam(req.params.postId);
-      const factCheckerId = req.user!.userId;
+      const factCheckerId = req.user!.userId;   //the ! denotes I know req.user is not null or undefined. Trust me.
 
       const claim = await this.claimService.claimPost(postId, factCheckerId);
       return ResponseUtil.created(res, claim);

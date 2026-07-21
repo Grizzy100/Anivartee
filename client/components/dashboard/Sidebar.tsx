@@ -1,5 +1,6 @@
 "use client";
 
+import { memo } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
@@ -42,7 +43,7 @@ interface SidebarProps {
   role: DashboardRole;
 }
 
-export function Sidebar({ role }: SidebarProps) {
+export const Sidebar = memo(function Sidebar({ role }: SidebarProps) {
   const basePath =
     role === "factchecker" ? "/fact-checker" : "/user";
   const pathname = usePathname();
@@ -155,4 +156,4 @@ export function Sidebar({ role }: SidebarProps) {
       </div>
     </aside>
   );
-}
+});

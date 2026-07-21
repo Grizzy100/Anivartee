@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useEffect, useRef } from "react";
+import { useState, useCallback, useEffect, useRef, useMemo } from "react";
 import { ShieldAlert, Loader2, AlertCircle, Inbox, RefreshCw, X } from "lucide-react";
 import { SlideTabs } from "@/components/ui/slide-tabs";
 import { BouncingDots } from "@/components/ui/bouncing-dots";
@@ -50,18 +50,24 @@ const EMPTY_STATE: QueueState = {
 // ─── Component ───────────────────────────────────────────────────────────────
 
 import { IoMdHelpCircleOutline } from "react-icons/io";
-import { useProductTour } from "@/lib/contexts/ProductTourContext";
+import { useProductTourActions } from "@/lib/contexts/ProductTourContext";
 
 export default function ModerationPage() {
   const [tabIndex, setTabIndex] = useState(0);
-  const { startTour, activeStep } = useProductTour();
+  const { startTour } = useProductTourActions();
 
-  // Watch the Product Tour step. Step index 2 is "Submitting a Verdict" which takes place on the Claimed tab.
+  // Listen for the tour reaching step 2 ("Submitting a Verdict") and
+  // auto-switch to the Claimed tab. Uses a DOM CustomEvent so tour step
+  // changes don't touch shared React state and don't cause re-renders here.
   useEffect(() => {
-    if (activeStep === 2) {
-      setTabIndex(1); // Auto-switch to Claimed tab
+    function onTourStep(e: Event) {
+      if ((e as CustomEvent<{ index: number }>).detail.index === 2) {
+        setTabIndex(1);
+      }
     }
-  }, [activeStep]);
+    window.addEventListener("tour-step-change", onTourStep);
+    return () => window.removeEventListener("tour-step-change", onTourStep);
+  }, []);
 
   // ── Queue tab state ──
   const [queue, setQueue] = useState<QueueState>({ ...EMPTY_STATE });
@@ -194,6 +200,86 @@ export default function ModerationPage() {
 
   // ── Render ─────────────────────────────────────────────────────────────────
 
+  const renderedPosts = useMemo(() => {
+    return current.posts.map((post, i) => {
+      const item = current.items[i];
+      const postId = item?.postId ?? post.linkId;
+
+      return (
+        <div key={post.id} className="relative">
+          <PostCard
+            post={post}
+            role="factchecker"
+            showStatus
+          />
+          {/* Action bar */}
+          <div className="flex items-center gap-2 px-4 py-2.5 border-t border-border">
+            {tabIndex === 0 ? (
+              <>
+                <button
+                  id="tour-claim-btn"
+                  onClick={() => handleClaim(postId)}
+                  disabled={claimingPostId === postId}
+                  className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-md bg-primary text-primary-foreground hover:bg-primary/90 transition-colors disabled:opacity-50"
+                >
+                  {claimingPostId === postId ? (
+                    <Loader2 className="w-3 h-3 animate-spin" />
+                  ) : null}
+                  Claim
+                </button>
+                <button
+                  onClick={() => handleIgnore(postId)}
+                  className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-md border border-border hover:bg-muted transition-colors text-muted-foreground"
+                >
+                  Ignore
+                </button>
+              </>
+            ) : (
+              <>
+                <button
+                  id="tour-validate-btn"
+                  onClick={() =>
+                    setVerdictTarget({ postId, title: post.title })
+                  }
+                  className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-md bg-emerald-600 text-white hover:bg-emerald-700 transition-colors"
+                >
+                  Validate
+                </button>
+                <button
+                  id="tour-debunk-btn"
+                  onClick={() =>
+                    setVerdictTarget({ postId, title: post.title })
+                  }
+                  className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-md bg-red-600 text-white hover:bg-red-700 transition-colors"
+                >
+                  Debunk
+                </button>
+                <button
+                  onClick={() => handleAbandon(postId)}
+                  disabled={abandoningPostId === postId}
+                  className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-md border border-border hover:bg-muted transition-colors text-muted-foreground ml-auto"
+                >
+                  {abandoningPostId === postId ? (
+                    <Loader2 className="w-3 h-3 animate-spin" />
+                  ) : null}
+                </button>
+              </>
+            )}
+          </div>
+        </div>
+      );
+    });
+  }, [
+    current.posts,
+    current.items,
+    tabIndex,
+    claimingPostId,
+    abandoningPostId,
+    handleClaim,
+    handleIgnore,
+    handleAbandon,
+  ]);
+
   return (
     <div className="w-full">
       {/* Header */}
@@ -257,75 +343,7 @@ export default function ModerationPage() {
         </div>
       ) : (
         <div className="space-y-4">
-          {current.posts.map((post, i) => {
-            const item = current.items[i];
-            const postId = item?.postId ?? post.linkId;
-
-            return (
-              <div key={post.id} className="relative">
-                <PostCard
-                  post={post}
-                  role="factchecker"
-                  showStatus
-                />
-                {/* Action bar */}
-                <div className="flex items-center gap-2 px-4 py-2.5 border-t border-border">
-                  {tabIndex === 0 ? (
-                    <>
-                      <button
-                        id="tour-claim-btn"
-                        onClick={() => handleClaim(postId)}
-                        disabled={claimingPostId === postId}
-                        className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-md bg-primary text-primary-foreground hover:bg-primary/90 transition-colors disabled:opacity-50"
-                      >
-                        {claimingPostId === postId ? (
-                          <Loader2 className="w-3 h-3 animate-spin" />
-                        ) : null}
-                        Claim
-                      </button>
-                      <button
-                        onClick={() => handleIgnore(postId)}
-                        className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-md border border-border hover:bg-muted transition-colors text-muted-foreground"
-                      >
-                        Ignore
-                      </button>
-                    </>
-                  ) : (
-                    <>
-                      <button
-                        id="tour-validate-btn"
-                        onClick={() =>
-                          setVerdictTarget({ postId, title: post.title })
-                        }
-                        className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-md bg-emerald-600 text-white hover:bg-emerald-700 transition-colors"
-                      >
-                        Validate
-                      </button>
-                      <button
-                        id="tour-debunk-btn"
-                        onClick={() =>
-                          setVerdictTarget({ postId, title: post.title })
-                        }
-                        className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-md bg-red-600 text-white hover:bg-red-700 transition-colors"
-                      >
-                        Debunk
-                      </button>
-                      <button
-                        onClick={() => handleAbandon(postId)}
-                        disabled={abandoningPostId === postId}
-                        className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-md border border-border hover:bg-muted transition-colors text-muted-foreground ml-auto"
-                      >
-                        {abandoningPostId === postId ? (
-                          <Loader2 className="w-3 h-3 animate-spin" />
-                        ) : null}
-                        Abandon
-                      </button>
-                    </>
-                  )}
-                </div>
-              </div>
-            );
-          })}
+          {renderedPosts}
 
           {/* Pagination */}
           {current.pagination && current.pagination.totalPages > 1 && (

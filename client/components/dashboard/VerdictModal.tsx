@@ -146,10 +146,15 @@ export function VerdictModal({
     setUrlInput("");
     setError(null);
   }, [urlInput, referenceUrls]);
-
-  const removeUrl = (index: number) => {
+  const removeUrl = useCallback((index: number) => {
     setReferenceUrls((prev) => prev.filter((_, i) => i !== index));
-  };
+  }, []);
+
+  const selectValidated = useCallback(() => { setVerdict("VALIDATED"); setError(null); }, []);
+  const selectDebunked = useCallback(() => { setVerdict("DEBUNKED"); setError(null); }, []);
+  const handleUrlKeyDown = useCallback((e: KeyboardEvent) => {
+    // This will be wired to input's onKeyDown which receives a KeyboardEvent from React
+  }, []);
 
   // ── Submit ──
   const handleSubmit = useCallback(async () => {
@@ -233,7 +238,7 @@ export function VerdictModal({
               </label>
               <div className="grid grid-cols-2 gap-3">
                 <button
-                  onClick={() => { setVerdict("VALIDATED"); setError(null); }}
+                  onClick={selectValidated}
                   className={`flex items-center justify-center gap-2 py-3 rounded-lg border-2 transition-all text-sm font-medium cursor-pointer ${
                     verdict === "VALIDATED"
                       ? "border-emerald-500 bg-emerald-500/10 text-emerald-600"
@@ -244,7 +249,7 @@ export function VerdictModal({
                   Validated
                 </button>
                 <button
-                  onClick={() => { setVerdict("DEBUNKED"); setError(null); }}
+                  onClick={selectDebunked}
                   className={`flex items-center justify-center gap-2 py-3 rounded-lg border-2 transition-all text-sm font-medium cursor-pointer ${
                     verdict === "DEBUNKED"
                       ? "border-red-500 bg-red-500/10 text-red-600"
@@ -300,7 +305,7 @@ export function VerdictModal({
                 Reference URLs <span className="text-destructive">*</span>
                 <span className="normal-case font-normal ml-1">(1–3)</span>
               </label>
-              {referenceUrls.map((url, i) => (
+                  {referenceUrls.map((url, i) => (
                 <div
                   key={i}
                   className="flex items-center gap-2 mb-1.5 text-xs"
@@ -309,10 +314,10 @@ export function VerdictModal({
                   <span className="truncate flex-1 text-foreground/80">
                     {url}
                   </span>
-                  <button
-                    onClick={() => removeUrl(i)}
-                    className="text-muted-foreground hover:text-destructive transition-colors"
-                  >
+                      <button
+                        onClick={() => removeUrl(i)}
+                        className="text-muted-foreground hover:text-destructive transition-colors"
+                      >
                     <X className="w-3 h-3" />
                   </button>
                 </div>

@@ -1,6 +1,6 @@
 "use client";
 
-import { memo, useState, useCallback } from "react";
+import { memo, useState, useCallback, useRef } from "react";
 import {
   Heart,
   Bookmark,
@@ -124,18 +124,21 @@ export const PostCard = memo(function PostCard({
   const [deleting, setDeleting] = useState(false);
   const [deleteError, setDeleteError] = useState<string | null>(null);
 
+  const closeCommentModal = useCallback(() => setCommentModalOpen(false), []);
+  const openCommentModal = useCallback(() => setCommentModalOpen(true), []);
+
+  const stateRef = useRef({ liked, flagged, likeLoading, flagLoading });
+  stateRef.current = { liked, flagged, likeLoading, flagLoading };
+
   // ── Like ──
   const handleLike = useCallback(async () => {
-    if (likeLoading || flagLoading) return;
+    const { liked: wasLiked, flagged: wasFlagged, likeLoading: isLoading, flagLoading: isFlagging } = stateRef.current;
+    if (isLoading || isFlagging) return;
+    
     setLikeLoading(true);
-
-    const wasLiked = liked;
-    const wasFlagged = flagged;
-
     setLiked(!wasLiked);
     setLikeCount((c) => (wasLiked ? c - 1 : c + 1));
 
-    // Mutually exclusive: turning on like turns off flag
     if (!wasLiked && wasFlagged) {
       setFlagged(false);
     }
@@ -153,19 +156,16 @@ export const PostCard = memo(function PostCard({
     } finally {
       setLikeLoading(false);
     }
-  }, [liked, flagged, likeLoading, flagLoading, post.linkId]);
+  }, [post.linkId]);
 
   // ── Flag ──
   const handleFlag = useCallback(async () => {
-    if (flagLoading || likeLoading) return;
+    const { liked: wasLiked, flagged: wasFlagged, likeLoading: isLoading, flagLoading: isFlagging } = stateRef.current;
+    if (isLoading || isFlagging) return;
+    
     setFlagLoading(true);
-
-    const wasFlagged = flagged;
-    const wasLiked = liked;
-
     setFlagged(!wasFlagged);
 
-    // Mutually exclusive: turning on flag turns off like
     if (!wasFlagged && wasLiked) {
       setLiked(false);
       setLikeCount((c) => c - 1);
@@ -178,23 +178,23 @@ export const PostCard = memo(function PostCard({
         await flagPost(post.linkId);
       }
     } catch {
-      // Revert optimism
       setFlagged(wasFlagged);
       setLiked(wasLiked);
-      if (!wasFlagged && wasLiked) {
-        setLikeCount((c) => c + 1);
-      }
+      if (!wasFlagged && wasLiked) setLikeCount((c) => c + 1);
     } finally {
       setFlagLoading(false);
     }
-  }, [flagged, liked, flagLoading, likeLoading, post.linkId]);
+  }, [post.linkId]);
+
+  const savedStateRef = useRef({ saved, saveLoading });
+  savedStateRef.current = { saved, saveLoading };
 
   // ── Save ──
   const handleSave = useCallback(async () => {
-    if (saveLoading) return;
+    const { saved: wasSaved, saveLoading: isSaving } = savedStateRef.current;
+    if (isSaving) return;
+    
     setSaveLoading(true);
-
-    const wasSaved = saved;
     setSaved(!wasSaved);
 
     try {
@@ -208,7 +208,7 @@ export const PostCard = memo(function PostCard({
     } finally {
       setSaveLoading(false);
     }
-  }, [saved, saveLoading, post.linkId]);
+  }, [post.linkId]);
 
   // ── Share ──
   const handleShare = useCallback(async () => {
@@ -389,7 +389,7 @@ export const PostCard = memo(function PostCard({
           </button>
 
           <button
-            onClick={() => setCommentModalOpen(true)}
+            onClick={openCommentModal}
             className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
           >
             <MessageSquare className="w-4 h-4" />
@@ -421,7 +421,7 @@ export const PostCard = memo(function PostCard({
       {/* ── Comment Modal ── */}
       <CommentModal
         open={commentModalOpen}
-        onClose={() => setCommentModalOpen(false)}
+        onClose={closeCommentModal}
         linkId={post.linkId}
         commentCount={post.comments}
         postTitle={post.title}

@@ -198,11 +198,18 @@ function CommentItem({
   const authorName = comment.author?.displayName ?? comment.author?.username ?? "Anonymous";
   const initials = getInitials(authorName);
 
-  const handleLike = useCallback(async () => {
-    if (likeLoading) return;
-    setLikeLoading(true);
+  // Keep latest state in a ref so handlers can be stable
+  const stateRef = useRef({ liked, likeCount, likeLoading });
+  useEffect(() => {
+    stateRef.current = { liked, likeCount, likeLoading };
+  }, [liked, likeCount, likeLoading]);
 
-    const wasLiked = liked;
+  const handleLike = useCallback(async () => {
+    const { liked: wasLiked } = stateRef.current;
+    if (stateRef.current.likeLoading) return;
+
+    // Optimistic update
+    setLikeLoading(true);
     setLiked(!wasLiked);
     setLikeCount((c) => (wasLiked ? c - 1 : c + 1));
 
@@ -213,12 +220,13 @@ function CommentItem({
         await likeComment(comment.id);
       }
     } catch {
+      // Revert on error
       setLiked(wasLiked);
       setLikeCount((c) => (wasLiked ? c + 1 : c - 1));
     } finally {
       setLikeLoading(false);
     }
-  }, [liked, likeLoading, comment.id]);
+  }, [comment.id]);
 
   const handleReplySubmit = useCallback(
     (reply: Comment) => {
@@ -228,6 +236,10 @@ function CommentItem({
     },
     [comment.id, onNewReply]
   );
+
+  const toggleShowReply = useCallback(() => setShowReplyInput((s) => !s), []);
+  const hideReplyInput = useCallback(() => setShowReplyInput(false), []);
+  const toggleRepliesExpanded = useCallback(() => setRepliesExpanded((s) => !s), []);
 
   // Cap visual nesting at 3 levels
   const nestLevel = Math.min(depth, 3);
@@ -286,7 +298,7 @@ function CommentItem({
 
             {depth < 3 && (
               <button
-                onClick={() => setShowReplyInput(!showReplyInput)}
+                onClick={toggleShowReply}
                 className="flex items-center gap-1 text-[11px] text-muted-foreground/60 hover:text-foreground transition-colors duration-150"
               >
                 <Reply className="w-3.5 h-3.5" />
@@ -304,7 +316,7 @@ function CommentItem({
                 placeholder="Write a reply\u2026"
                 autoFocus
                 onSubmit={handleReplySubmit}
-                onCancel={() => setShowReplyInput(false)}
+                onCancel={hideReplyInput}
               />
             </div>
           )}
@@ -315,7 +327,7 @@ function CommentItem({
       {hasReplies && (
         <div>
           <button
-            onClick={() => setRepliesExpanded(!repliesExpanded)}
+            onClick={toggleRepliesExpanded}
             className="flex items-center gap-1 text-[11px] text-muted-foreground/60 hover:text-foreground ml-11 mb-1 transition-colors duration-150"
           >
             {repliesExpanded ? (
@@ -332,7 +344,7 @@ function CommentItem({
           {repliesExpanded && (
             <div>
               {comment.replies!.map((reply) => (
-                <CommentItem
+                <MemoizedCommentItem
                   key={reply.id}
                   comment={reply}
                   linkId={linkId}
@@ -347,6 +359,8 @@ function CommentItem({
     </div>
   );
 }
+
+const MemoizedCommentItem = memo(CommentItem);
 
 // ─── Comment Section (main export) ───────────────────────────────────────────
 
@@ -461,7 +475,7 @@ export const CommentSection = memo(function CommentSection({
         ) : (
           <div className="divide-y divide-border/40">
             {comments.map((comment) => (
-              <CommentItem
+              <MemoizedCommentItem
                 key={comment.id}
                 comment={comment}
                 linkId={linkId}

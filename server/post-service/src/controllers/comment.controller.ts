@@ -4,7 +4,7 @@ import { CommentService } from '../services/comment.service.js';
 import { createCommentSchema, updateCommentSchema } from '../validators/comment.schema.js';
 import { ResponseUtil } from '../utils/response.js';
 import { logger } from '../utils/logger.js';
-import { getParam } from '../utils/request.js'; // ✅ ADD THIS
+import { getParam } from '../utils/request.js'; 
 import type { AuthRequest } from '../types/auth.types.js';
 
 export class CommentController {
@@ -12,7 +12,7 @@ export class CommentController {
 
   async createComment(req: AuthRequest, res: Response) {
     try {
-      const linkId = getParam(req.params.linkId); // ✅ FIXED
+      const linkId = getParam(req.params.linkId); 
       const userId = req.user!.userId;
       const validatedData = createCommentSchema.parse(req.body);
       

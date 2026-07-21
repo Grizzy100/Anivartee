@@ -17,3 +17,9 @@ export function createEntitlementsRoutes(
   return router;
 }
 
+
+//Two features:
+//1)verifies and lets other services use it
+//2)check the subscription plan for user so to allow posting and all
+
+

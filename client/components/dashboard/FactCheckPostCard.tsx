@@ -1,4 +1,5 @@
-import React, { memo, useState, useCallback } from "react";
+"use client"
+import React, { memo, useState, useCallback, useRef } from "react";
 import {
     ExternalLink,
     ShieldCheck,
@@ -77,18 +78,21 @@ export const FactCheckPostCard = memo(function FactCheckPostCard({
     const [flagLoading, setFlagLoading] = useState(false);
     const [commentModalOpen, setCommentModalOpen] = useState(false);
 
+    const closeCommentModal = useCallback(() => setCommentModalOpen(false), []);
+    const openCommentModal = useCallback(() => setCommentModalOpen(true), []);
+
+    const stateRef = useRef({ liked, flagged, likeLoading, flagLoading });
+    stateRef.current = { liked, flagged, likeLoading, flagLoading };
+
     // ── Like ──
     const handleLike = useCallback(async () => {
-        if (likeLoading || flagLoading) return;
+        const { liked: wasLiked, flagged: wasFlagged, likeLoading: isLoading, flagLoading: isFlagging } = stateRef.current;
+        if (isLoading || isFlagging) return;
         setLikeLoading(true);
-
-        const wasLiked = liked;
-        const wasFlagged = flagged;
 
         setLiked(!wasLiked);
         setLikeCount((c) => (wasLiked ? c - 1 : c + 1));
 
-        // Mutually exclusive: turning on like turns off flag
         if (!wasLiked && wasFlagged) {
             setFlagged(false);
         }
@@ -106,19 +110,16 @@ export const FactCheckPostCard = memo(function FactCheckPostCard({
         } finally {
             setLikeLoading(false);
         }
-    }, [liked, flagged, likeLoading, flagLoading, originalPost.linkId]);
+    }, [originalPost.linkId]);
 
     // ── Flag ──
     const handleFlag = useCallback(async () => {
-        if (flagLoading || likeLoading) return;
+        const { liked: wasLiked, flagged: wasFlagged, likeLoading: isLoading, flagLoading: isFlagging } = stateRef.current;
+        if (isLoading || isFlagging) return;
         setFlagLoading(true);
-
-        const wasFlagged = flagged;
-        const wasLiked = liked;
 
         setFlagged(!wasFlagged);
 
-        // Mutually exclusive: turning on flag turns off like
         if (!wasFlagged && wasLiked) {
             setLiked(false);
             setLikeCount((c) => c - 1);
@@ -131,7 +132,6 @@ export const FactCheckPostCard = memo(function FactCheckPostCard({
                 await flagPost(originalPost.linkId);
             }
         } catch {
-            // Revert optimism
             setFlagged(wasFlagged);
             setLiked(wasLiked);
             if (!wasFlagged && wasLiked) {
@@ -140,14 +140,17 @@ export const FactCheckPostCard = memo(function FactCheckPostCard({
         } finally {
             setFlagLoading(false);
         }
-    }, [flagged, liked, flagLoading, likeLoading, originalPost.linkId]);
+    }, [originalPost.linkId]);
+
+    const savedStateRef = useRef({ saved, saveLoading });
+    savedStateRef.current = { saved, saveLoading };
 
     // ── Save ──
     const handleSave = useCallback(async () => {
-        if (saveLoading) return;
+        const { saved: wasSaved, saveLoading: isSaving } = savedStateRef.current;
+        if (isSaving) return;
         setSaveLoading(true);
 
-        const wasSaved = saved;
         setSaved(!wasSaved);
 
         try {
@@ -161,7 +164,7 @@ export const FactCheckPostCard = memo(function FactCheckPostCard({
         } finally {
             setSaveLoading(false);
         }
-    }, [saved, saveLoading, originalPost.linkId]);
+    }, [originalPost.linkId]);
 
     // ── Share ──
     const handleShare = useCallback(async () => {
@@ -211,7 +214,7 @@ export const FactCheckPostCard = memo(function FactCheckPostCard({
             </button>
 
             <button
-                onClick={() => setCommentModalOpen(true)}
+                onClick={openCommentModal}
                 className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
             >
                 <MessageSquare className="w-4 h-4" />
@@ -374,7 +377,7 @@ export const FactCheckPostCard = memo(function FactCheckPostCard({
             {/* ── Comment Modal ── */}
             <CommentModal
                 open={commentModalOpen}
-                onClose={() => setCommentModalOpen(false)}
+                onClose={closeCommentModal}
                 linkId={originalPost.linkId}
                 commentCount={originalPost.comments}
                 postTitle={originalPost.title}

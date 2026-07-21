@@ -107,7 +107,7 @@ const MONTHS = [
   "December",
 ];
 
-function Calendar({
+const Calendar = React.memo(function Calendar({
   selected,
   onSelect,
   disabled,
@@ -457,7 +457,7 @@ function Calendar({
       </div>
     </div>
   );
-}
+});
 
 // Helper function to check if two dates are the same day
 function isSameDay(date1: Date, date2: Date): boolean {

@@ -1,12 +1,12 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useState, memo } from "react";
 import { FileText, Heart, ShieldCheck, Zap } from "lucide-react";
 import { getMyRank, type UserRankData } from "@/lib/api/points";
 import { getUserStats, type UserStats } from "@/lib/api/post";
 import { useAuth } from "@/lib/auth/AuthContext";
 import { IoMdHelpCircleOutline } from "react-icons/io";
-import { useProductTour } from "@/lib/contexts/ProductTourContext";
+import { useProductTourActions } from "@/lib/contexts/ProductTourContext";
 import type { DashboardRole } from "./types";
 
 interface UserStatsCardProps {
@@ -15,13 +15,13 @@ interface UserStatsCardProps {
   initials?: string;
 }
 
-export function UserStatsCard({
+export const UserStatsCard = memo(function UserStatsCard({
   role,
   displayName = "User",
   initials = "U",
 }: UserStatsCardProps) {
   const { user } = useAuth();
-  const { startTour } = useProductTour();
+  const { startTour } = useProductTourActions();
   const [rankData, setRankData] = useState<UserRankData | null>(null);
   const rankName = rankData?.rankName ?? null;
   const [stats, setStats] = useState<UserStats>({
@@ -158,4 +158,4 @@ export function UserStatsCard({
 
     </div>
   );
-}
+});

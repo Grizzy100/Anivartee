@@ -31,17 +31,18 @@ export function CommentModal({
     };
     window.addEventListener("keydown", handler);
     return () => window.removeEventListener("keydown", handler);
-  }, [open, onClose]);
+  }, [open]);
 
   // Lock body scroll when open
   useEffect(() => {
+    let originalOverflow = document.body.style.overflow;
     if (open) {
       document.body.style.overflow = "hidden";
-    } else {
-      document.body.style.overflow = "";
     }
     return () => {
-      document.body.style.overflow = "";
+      if (open) {
+        document.body.style.overflow = originalOverflow;
+      }
     };
   }, [open]);
 

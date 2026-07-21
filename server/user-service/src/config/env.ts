@@ -2,7 +2,7 @@
 import dotenv from 'dotenv';
 import { z } from 'zod';
 
-dotenv.config();
+dotenv.config({ override: true });
 
 const envSchema = z.object({
   // Core

@@ -101,7 +101,7 @@ export function ActionToolbar({
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
                   {btn.dropdownItems.map((item, i) => (
-                    <DropdownMenuItem key={i} onClick={() => console.log(item)}>
+                    <DropdownMenuItem key={i} onClick={() => {}}>
                       {item}
                     </DropdownMenuItem>
                   ))}
